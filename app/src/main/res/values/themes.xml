@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Mente_Libre_App" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Opcional: background de la ventana -->
+        <item name="android:windowBackground">#DC4F79</item>
+        <!-- Quitamos statusBarColor y navigationBarColor -->
+    </style>
+</resources>
