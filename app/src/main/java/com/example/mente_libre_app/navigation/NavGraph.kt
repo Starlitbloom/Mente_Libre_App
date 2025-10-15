@@ -29,6 +29,7 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
     val goBienvenida4 = { navController.navigate(Route.Bienvenida4.path) }
     val goBienvenida = { navController.navigate(Route.Bienvenida.path) }
     val goCrear = { navController.navigate(Route.Crear.path) }
+    val goIniciar = { navController.navigate(Route.Iniciar.path)}
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -76,7 +77,13 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
                 composable(Route.Bienvenida.path) {
                     BienvenidaScreen(
                         onComenzarClick = goCrear,
-                        onLoginClick = { /* acción para login */ }
+                        onLoginClick = goIniciar
+                    )
+                }
+                composable(Route.Crear.path) {
+                    CrearScreen(
+                        onComenzarClick = { /* acción: registrar usuario o siguiente */ },
+                        onLoginClick = goIniciar
                     )
                 }
             }
