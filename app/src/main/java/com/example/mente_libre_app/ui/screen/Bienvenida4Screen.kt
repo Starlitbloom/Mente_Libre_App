@@ -28,7 +28,7 @@ import com.example.mente_libre_app.ui.theme.ButtonMagenta
 import com.example.mente_libre_app.ui.theme.MainColor
 
 @Composable
-fun Bienvenida2Screen(onNext: () -> Unit) {
+fun Bienvenida4Screen(onNext: () -> Unit) {
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
 
     val interactionSource = remember { MutableInteractionSource() }
@@ -37,7 +37,7 @@ fun Bienvenida2Screen(onNext: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFED9BE)),
+            .background(Color(0xFFE5EAD7)),
         contentAlignment = Alignment.Center
     ) {
 
@@ -47,7 +47,7 @@ fun Bienvenida2Screen(onNext: () -> Unit) {
                 .align(Alignment.TopCenter)
                 .padding(top = 40.dp),
             count = 4,
-            selectedIndex = 1
+            selectedIndex = 3
         )
 
         // 🔹 Fondo blanco curvo
@@ -62,7 +62,7 @@ fun Bienvenida2Screen(onNext: () -> Unit) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 34.dp),
+                    .padding(top = 0.dp), // texto un poco más arriba
                 contentAlignment = Alignment.Center
             ) {
                 Column(
@@ -70,7 +70,7 @@ fun Bienvenida2Screen(onNext: () -> Unit) {
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "Una mascota virtual,\ntu compañera incondicional",
+                        text = "Ejercicios de\nbienestar diseñados\npara reconectar\ncontigo mismo",
                         color = MainColor,
                         fontSize = 26.sp,
                         fontWeight = FontWeight.Bold,
@@ -88,7 +88,7 @@ fun Bienvenida2Screen(onNext: () -> Unit) {
                         shape = CircleShape,
                         modifier = Modifier
                             .size(88.dp)
-                            .offset(y = (-8).dp),
+                            .offset(y = (-10).dp), // botón permanece igual
                         elevation = FloatingActionButtonDefaults.elevation(
                             defaultElevation = 0.dp,
                             pressedElevation = 0.dp,
@@ -110,13 +110,14 @@ fun Bienvenida2Screen(onNext: () -> Unit) {
 
         // 🔹 Imagen central
         Image(
-            painter = painterResource(id = R.drawable.mascota_bienvenida2),
-            contentDescription = "Perro central",
+            painter = painterResource(id = R.drawable.mascota_bienvenida4),
+            contentDescription = "Oveja central",
             contentScale = ContentScale.Fit,
             modifier = Modifier
                 .align(Alignment.Center)
-                .size(400.dp)
-                .offset(y = (-35).dp)
+                .size(400.dp) // mascota más pequeña
+                .offset(y = (-110).dp) // misma altura
         )
     }
 }
+

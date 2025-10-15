@@ -8,4 +8,6 @@ sealed class Route(val path: String) {
     data object Bienvenida2 : Route("bienvenida2")
     data object Bienvenida3 : Route("bienvenida3")
     data object Bienvenida4 : Route("bienvenida4")
+    data object Bienvenida : Route("bienvenida")
+    data object Crear : Route("crear")
 }

@@ -11,17 +11,21 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Mente_Libre_App">
+
+        <!-- 🚀 Ahora esta es la Activity principal -->
         <activity
-            android:name=".MainActivity"
+            android:name=".TestActivity"
             android:exported="true"
-            android:label="@string/app_name"
+            android:label="Test Screen"
             android:theme="@style/Theme.Mente_Libre_App">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Tu MainActivity sigue existiendo, pero no se lanza -->
+        <activity android:name=".MainActivity" />
     </application>
 
 </manifest>

@@ -10,6 +10,9 @@ val PinkDark = Color(0xFFD94775)
 // Otros colores opcionales
 val PurpleGrey80 = Color(0xFFD0BCFF)
 val Pink80 = Color(0xFFEFB8C8)
-
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
+
+// 🔹 Colores que usas en las pantallas de bienvenida
+val ButtonMagenta = Color(0xFFE9547C)
+val MainColor = Color(0xFF842C46)

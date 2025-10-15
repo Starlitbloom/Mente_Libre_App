@@ -10,30 +10,34 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.mente_libre_app.ui.theme.MainColor
 
 @Composable
 fun PaginatorDots(
-    modifier: Modifier = Modifier,
     count: Int,
-    selectedIndex: Int
+    selectedIndex: Int,
+    modifier: Modifier = Modifier
 ) {
-    val mainColor = Color(0xFF842C46) // 🎨 tu color principal (vino oscuro)
-
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(10.dp) // un poco más de separación
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        repeat(count) { index ->
-            val isSelected = index == selectedIndex
+        for (i in 0 until count) {
+            val isSelected = i == selectedIndex
+
             Box(
                 modifier = Modifier
-                    .size(if (isSelected) 14.dp else 12.dp) // puntos un poco más grandes
+                    .size(12.dp)
                     .clip(CircleShape)
-                    .background(if (isSelected) mainColor else Color.Transparent)
-                    .border(width = 2.dp, color = mainColor, shape = CircleShape)
+                    .then(
+                        if (isSelected)
+                            Modifier.border(1.dp, MainColor, CircleShape)
+                        else
+                            Modifier.background(MainColor, CircleShape)
+                    )
             )
         }
     }
 }
+

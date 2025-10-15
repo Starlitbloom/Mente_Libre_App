@@ -2,13 +2,15 @@ package com.example.mente_libre_app.ui.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.rounded.ArrowForward
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,13 +24,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mente_libre_app.R
 import com.example.mente_libre_app.ui.components.PaginatorDots
-
-val ButtonMagenta = Color(0xFFE9547C)
-val MainColor = Color(0xFF842C46)
+import com.example.mente_libre_app.ui.theme.ButtonMagenta
+import com.example.mente_libre_app.ui.theme.MainColor
 
 @Composable
 fun Bienvenida1Screen(onNext: () -> Unit) {
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
+
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
 
     Box(
         modifier = Modifier
@@ -55,9 +59,10 @@ fun Bienvenida1Screen(onNext: () -> Unit) {
             color = Color.White,
             shape = RoundedCornerShape(topStart = 120.dp, topEnd = 120.dp)
         ) {
-            // 🔹 Box para centrar texto y botón
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 60.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(
@@ -74,19 +79,29 @@ fun Bienvenida1Screen(onNext: () -> Unit) {
                         textAlign = TextAlign.Center
                     )
 
-                    Spacer(modifier = Modifier.height(40.dp))
+                    Spacer(modifier = Modifier.height(25.dp))
 
+                    // 🔹 Botón con cambio de color al presionar
                     FloatingActionButton(
-                        onClick = onNext,
-                        containerColor = ButtonMagenta,
+                        onClick = { onNext() },
+                        containerColor = if (isPressed) MainColor else ButtonMagenta,
                         shape = CircleShape,
-                        modifier = Modifier.size(70.dp)
+                        modifier = Modifier
+                            .size(88.dp)
+                            .offset(y = (-8).dp),
+                        elevation = FloatingActionButtonDefaults.elevation(
+                            defaultElevation = 0.dp,
+                            pressedElevation = 0.dp,
+                            focusedElevation = 0.dp,
+                            hoveredElevation = 0.dp
+                        ),
+                        interactionSource = interactionSource
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.ArrowForward,
+                            imageVector = Icons.Rounded.ArrowForward,
                             contentDescription = "Avanzar",
                             tint = Color.White,
-                            modifier = Modifier.size(36.dp)
+                            modifier = Modifier.size(40.dp)
                         )
                     }
                 }
