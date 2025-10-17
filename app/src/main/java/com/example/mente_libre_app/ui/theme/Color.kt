@@ -16,3 +16,4 @@ val Pink40 = Color(0xFF7D5260)
 // 🔹 Colores que usas en las pantallas de bienvenida
 val ButtonMagenta = Color(0xFFE9547C)
 val MainColor = Color(0xFF842C46)
+val Gray = Color(0xFF8688A8)

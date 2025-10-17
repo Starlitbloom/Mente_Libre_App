@@ -5,13 +5,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
-import com.example.mente_libre_app.ui.screen.*
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mente_libre_app.data.local.database.AppDatabase
+import com.example.mente_libre_app.data.repository.UserRepository
+import com.example.mente_libre_app.ui.screen.*
+import com.example.mente_libre_app.ui.viewmodel.AuthViewModel
+import com.example.mente_libre_app.ui.viewmodel.AuthViewModelFactory
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -27,31 +33,44 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
     val goBienvenida2 = { navController.navigate(Route.Bienvenida2.path) }
     val goBienvenida3 = { navController.navigate(Route.Bienvenida3.path) }
     val goBienvenida4 = { navController.navigate(Route.Bienvenida4.path) }
-    val goBienvenida = { navController.navigate(Route.Bienvenida.path) }
-    val goCrear = { navController.navigate(Route.Crear.path) }
-    val goIniciar = { navController.navigate(Route.Iniciar.path)}
+    val goBienvenida  = { navController.navigate(Route.Bienvenida.path) }
+    val goCrear       = { navController.navigate(Route.Crear.path) }
+    val goIniciar     = { navController.navigate(Route.Iniciar.path) }
+
+    // Inicialización de DB, DAO y repositorio
+    val context = LocalContext.current
+    val dao = AppDatabase.getInstance(context).userDao()
+    val repository = UserRepository(dao)
+    val factory = AuthViewModelFactory(repository)
+
+    // AuthViewModel con factory
+    val authViewModel: AuthViewModel = viewModel(factory = factory)
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        drawerContent = { /* vacío */ }
+        drawerContent = { /* drawer vacío */ }
     ) {
         Scaffold { innerPadding ->
             AnimatedNavHost(
                 navController = navController,
                 startDestination = Route.Portada.path,
                 modifier = Modifier.padding(innerPadding),
-                enterTransition = { slideInHorizontally(
-                    initialOffsetX = { it }, animationSpec = tween(400)
-                ) + fadeIn(animationSpec = tween(400)) },
-                exitTransition = { slideOutHorizontally(
-                    targetOffsetX = { -it }, animationSpec = tween(400)
-                ) + fadeOut(animationSpec = tween(400)) },
-                popEnterTransition = { slideInHorizontally(
-                    initialOffsetX = { -it }, animationSpec = tween(400)
-                ) + fadeIn(animationSpec = tween(400)) },
-                popExitTransition = { slideOutHorizontally(
-                    targetOffsetX = { it }, animationSpec = tween(400)
-                ) + fadeOut(animationSpec = tween(400)) }
+                enterTransition = {
+                    slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(400)) +
+                            fadeIn(animationSpec = tween(400))
+                },
+                exitTransition = {
+                    slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(400)) +
+                            fadeOut(animationSpec = tween(400))
+                },
+                popEnterTransition = {
+                    slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(400)) +
+                            fadeIn(animationSpec = tween(400))
+                },
+                popExitTransition = {
+                    slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(400)) +
+                            fadeOut(animationSpec = tween(400))
+                }
             ) {
                 composable(Route.Portada.path) {
                     PortadaScreen(onNext = goCargando)
@@ -81,8 +100,12 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
                     )
                 }
                 composable(Route.Crear.path) {
-                    CrearScreen(
-                        onComenzarClick = { /* acción: registrar usuario o siguiente */ },
+                    CrearScreenVm(
+                        authViewModel = authViewModel,  // ✅ correcto
+                        onComenzarClick = {
+                            println("Botón comenzar presionado")
+                            // navController.navigate(Route.Siguiente.path) si quieres
+                        },
                         onLoginClick = goIniciar
                     )
                 }
