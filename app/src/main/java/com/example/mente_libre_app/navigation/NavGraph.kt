@@ -98,6 +98,7 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
                         onComenzarClick = goCrear,
                         onLoginClick = goIniciar
                     )
+
                 }
                 composable(Route.Crear.path) {
                     CrearScreenVm(
@@ -107,6 +108,17 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
                             // navController.navigate(Route.Siguiente.path) si quieres
                         },
                         onLoginClick = goIniciar
+                    )
+                }
+                composable(Route.Iniciar.path) {
+                    IniciarScreenVm(
+                        authViewModel = authViewModel, // ✅ usa el mismo ViewModel
+                        onRegisterClick = goCrear,      // para ir a crear cuenta
+                        onLoginSuccess = {
+                            // Aquí defines qué pasa al iniciar sesión correctamente
+                            println("Login exitoso")
+                            // navController.navigate(Route.Home.path) por ejemplo
+                        }
                     )
                 }
             }

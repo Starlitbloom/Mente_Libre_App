@@ -10,6 +10,16 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 // ----------------- ESTADO DE LA UI -----------------
+data class LoginUiState(
+    val email: String = "",
+    val pass: String = "",
+    val emailError: String? = null,
+    val passError: String? = null,
+    val isSubmitting: Boolean = false,
+    val canSubmit: Boolean = false,
+    val success: Boolean = false,
+    val errorMsg: String? = null
+)
 data class RegisterUiState(
     val name: String = "",
     val email: String = "",
@@ -33,11 +43,53 @@ class AuthViewModel(
     private val repository: UserRepository
 ) : ViewModel() {
 
+    private val _login = MutableStateFlow(LoginUiState())   // Estado interno (Login)
+    val login: StateFlow<LoginUiState> = _login
+
     private val _register = MutableStateFlow(RegisterUiState())
     val register: StateFlow<RegisterUiState> = _register
 
     // ----------------- HANDLERS -----------------
 
+    fun onLoginEmailChange(value: String) {
+        _login.update { it.copy(email = value, emailError = validateEmail(value)) }
+        recomputeLoginCanSubmit()
+    }
+
+    fun onLoginPassChange(value: String) {
+        _login.update { it.copy(pass = value) }
+        recomputeLoginCanSubmit()
+    }
+
+    private fun recomputeLoginCanSubmit() {
+        val s = _login.value
+        val can = s.emailError == null && s.email.isNotBlank() && s.pass.isNotBlank()
+        _login.update { it.copy(canSubmit = can) }
+    }
+
+    fun submitLogin() {
+        val s = _login.value
+        if (!s.canSubmit || s.isSubmitting) return
+
+        viewModelScope.launch {
+            _login.update { it.copy(isSubmitting = true, errorMsg = null, success = false) }
+            val result = repository.login(s.email.trim(), s.pass)
+            _login.update {
+                if (result.isSuccess) it.copy(isSubmitting = false, success = true, errorMsg = null)
+                else it.copy(
+                    isSubmitting = false,
+                    success = false,
+                    errorMsg = result.exceptionOrNull()?.message ?: "Error de login"
+                )
+            }
+        }
+    }
+
+    fun clearLoginResult() {
+        _login.update { it.copy(success = false, errorMsg = null) }
+    }
+
+    // --- REGISTRO ---
     fun onNameChange(value: String) {
         val filtered = value.filter { it.isLetter() || it.isWhitespace() }
         _register.update { it.copy(name = filtered, nameError = validateNameLettersOnly(filtered)) }
@@ -109,5 +161,7 @@ class AuthViewModel(
 
     fun clearRegisterResult() {
         _register.update { it.copy(success = false, errorMsg = null) }
+
+
     }
 }
