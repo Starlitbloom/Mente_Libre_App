@@ -35,6 +35,7 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
     val goBienvenida4 = { navController.navigate(Route.Bienvenida4.path) }
     val goBienvenida  = { navController.navigate(Route.Bienvenida.path) }
     val goCrear       = { navController.navigate(Route.Crear.path) }
+    val goMascota = { navController.navigate(Route.Mascota.path)}
     val goIniciar     = { navController.navigate(Route.Iniciar.path) }
 
     // Inicialización de DB, DAO y repositorio
@@ -103,10 +104,7 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
                 composable(Route.Crear.path) {
                     CrearScreenVm(
                         authViewModel = authViewModel,  // ✅ correcto
-                        onComenzarClick = {
-                            println("Botón comenzar presionado")
-                            // navController.navigate(Route.Siguiente.path) si quieres
-                        },
+                        onComenzarClick = goMascota,
                         onLoginClick = goIniciar
                     )
                 }
@@ -120,6 +118,9 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
                             // navController.navigate(Route.Home.path) por ejemplo
                         }
                     )
+                }
+                composable(Route.Mascota.path) {
+                    MascotaScreen(onNext = goBienvenida)
                 }
             }
         }
