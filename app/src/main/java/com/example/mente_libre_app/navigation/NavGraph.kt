@@ -36,6 +36,13 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
     val goBienvenida  = { navController.navigate(Route.Bienvenida.path) }
     val goCrear       = { navController.navigate(Route.Crear.path) }
     val goMascota = { navController.navigate(Route.Mascota.path)}
+    val goHamster = { navController.navigate(Route.Hamster.path)}
+    val goMapache = { navController.navigate(Route.Mapache.path)}
+    val goZorro = { navController.navigate(Route.Zorro.path)}
+    val goPerro = { navController.navigate(Route.Perro.path)}
+    val goNutria = { navController.navigate(Route.Nutria.path)}
+    val goOveja = { navController.navigate(Route.Oveja.path)}
+    val goGato = { navController.navigate(Route.Gato.path)}
     val goIniciar     = { navController.navigate(Route.Iniciar.path) }
 
     // Inicialización de DB, DAO y repositorio
@@ -120,7 +127,7 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
                     )
                 }
                 composable(Route.Mascota.path) {
-                    MascotaScreen(onNext = goBienvenida)
+                    MascotaScreen(onNext = goHamster)
                 }
             }
         }

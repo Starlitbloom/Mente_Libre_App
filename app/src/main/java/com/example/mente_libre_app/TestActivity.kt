@@ -6,7 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mente_libre_app.data.local.database.AppDatabase
 import com.example.mente_libre_app.data.repository.UserRepository
-import com.example.mente_libre_app.ui.screen.MascotaScreen
+import com.example.mente_libre_app.ui.screen.HamsterScreen
+import com.example.mente_libre_app.ui.screen.MapacheScreen
 import com.example.mente_libre_app.ui.theme.Mente_Libre_AppTheme
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModel
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModelFactory
@@ -24,15 +25,12 @@ class TestActivity : ComponentActivity() {
             Mente_Libre_AppTheme {
                 val authViewModel: AuthViewModel = viewModel(factory = factory)
 
-                MascotaScreen(
-                    onNext = {
-                        // Acción de prueba: aquí podrías navegar a otra pantalla
-                        // o mostrar un Log
-                        println("Se pasó a la siguiente pantalla")
+                MapacheScreen(
+                    onElegirClick = {
+                        println("Elegiste al hámster 🐹")
                     }
                 )
             }
         }
     }
 }
-
