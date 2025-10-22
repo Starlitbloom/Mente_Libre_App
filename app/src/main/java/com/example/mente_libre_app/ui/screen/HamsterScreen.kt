@@ -25,7 +25,7 @@ import com.example.mente_libre_app.R
 @Composable
 fun HamsterScreen(
     mascotaNombre: String = "Hámster",
-    mascotaDescripcion: String = "Pequeño pero lleno de energía, ¡estaré a tu lado para alegrar tu día!",
+    mascotaDescripcion: String = "\"Pequeño pero lleno de energía, ¡estaré a tu lado para alegrar tu día!\"",
     onElegirClick: () -> Unit = {}
 ) {
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))

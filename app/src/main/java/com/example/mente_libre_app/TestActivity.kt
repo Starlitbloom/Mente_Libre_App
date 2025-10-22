@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mente_libre_app.data.local.database.AppDatabase
 import com.example.mente_libre_app.data.repository.UserRepository
+import com.example.mente_libre_app.ui.screen.GatoScreen
 import com.example.mente_libre_app.ui.screen.HamsterScreen
 import com.example.mente_libre_app.ui.screen.MapacheScreen
 import com.example.mente_libre_app.ui.theme.Mente_Libre_AppTheme
@@ -25,7 +26,7 @@ class TestActivity : ComponentActivity() {
             Mente_Libre_AppTheme {
                 val authViewModel: AuthViewModel = viewModel(factory = factory)
 
-                MapacheScreen(
+                GatoScreen(
                     onElegirClick = {
                         println("Elegiste al hámster 🐹")
                     }

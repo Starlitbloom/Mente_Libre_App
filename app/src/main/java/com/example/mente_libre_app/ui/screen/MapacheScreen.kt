@@ -40,7 +40,7 @@ import com.example.mente_libre_app.R
 @Composable
 fun MapacheScreen(
     mascotaNombre: String = "Mapache",
-    mascotaDescripcion: String = "Aunque sea un poco travieso, mi lealtad contigo no tiene límites",
+    mascotaDescripcion: String = "\"Aunque sea un poco travieso, mi lealtad contigo no tiene límites.\"",
     onElegirClick: () -> Unit = {}
 ) {
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
