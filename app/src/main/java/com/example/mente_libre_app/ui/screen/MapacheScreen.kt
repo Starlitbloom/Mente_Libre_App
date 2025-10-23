@@ -20,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,14 +41,19 @@ import com.example.mente_libre_app.R
 @Composable
 fun MapacheScreen(
     mascotaNombre: String = "Mapache",
-    mascotaDescripcion: String = "\"Aunque sea un poco travieso, mi lealtad contigo no tiene límites.\"",
-    onElegirClick: () -> Unit = {}
+    mascotaDescripcion: String = "Aunque sea un poco travieso, mi lealtad contigo no tiene límites.",
+    onElegirClick: () -> Unit = {},
+    esSeleccionada: Boolean = false
 ) {
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
     val serifBlack = FontFamily(Font(R.font.source_serif_pro_black))
 
     var isHappy by remember { mutableStateOf(false) } // controla si el mapache está feliz
+
+    LaunchedEffect(esSeleccionada) {
+        isHappy = esSeleccionada
+    }
 
     Box(
         modifier = Modifier
@@ -128,7 +134,7 @@ fun MapacheScreen(
 
             val interactionSource = remember { MutableInteractionSource() }
             val isPressed by interactionSource.collectIsPressedAsState()
-            val glowColor = if (isPressed) Color(0xFFFFCE5C) else Color.Transparent
+            val glowColor = if (isPressed) Color(0xFFF379FA) else Color.Transparent
 
             Box(
                 contentAlignment = Alignment.Center,

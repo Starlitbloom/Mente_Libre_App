@@ -9,6 +9,8 @@ import com.example.mente_libre_app.data.repository.UserRepository
 import com.example.mente_libre_app.ui.screen.GatoScreen
 import com.example.mente_libre_app.ui.screen.HamsterScreen
 import com.example.mente_libre_app.ui.screen.MapacheScreen
+import com.example.mente_libre_app.ui.screen.NutriaScreen
+import com.example.mente_libre_app.ui.screen.OvejaScreen
 import com.example.mente_libre_app.ui.theme.Mente_Libre_AppTheme
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModel
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModelFactory
@@ -26,7 +28,7 @@ class TestActivity : ComponentActivity() {
             Mente_Libre_AppTheme {
                 val authViewModel: AuthViewModel = viewModel(factory = factory)
 
-                GatoScreen(
+                OvejaScreen(
                     onElegirClick = {
                         println("Elegiste al hámster 🐹")
                     }

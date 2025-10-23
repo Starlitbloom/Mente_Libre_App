@@ -19,6 +19,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,7 +41,8 @@ import com.example.mente_libre_app.R
 fun NutriaScreen(
     mascotaNombre: String = "Nutria",
     mascotaDescripcion: String = "Juguetona y tierna, estaré aquí para sacarte una sonrisa en cada momento.",
-    onElegirClick: () -> Unit = {}
+    onElegirClick: () -> Unit = {},
+    esSeleccionada: Boolean = false
 ) {
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
@@ -48,10 +50,14 @@ fun NutriaScreen(
 
     var isHappy by remember { mutableStateOf(false) } // controla si el mapache está feliz
 
+    LaunchedEffect(esSeleccionada) {
+        isHappy = esSeleccionada
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFAD2E21))
+            .background(Color(0xFF4469B9))
             .padding(vertical = 40.dp, horizontal = 20.dp)
     ) {
         Column(
@@ -87,12 +93,12 @@ fun NutriaScreen(
                         .height(170.dp)
                         .clip(RoundedCornerShape(30.dp))
                         .shadow(12.dp, RoundedCornerShape(30.dp))
-                        .background(Color(0xFFE3B0A8))
+                        .background(Color(0xFF92DEEF))
                 )
 
                 Image(
                     painter = painterResource(
-                        id = if (isHappy) R.drawable.gato_feliz else R.drawable.nutria
+                        id = if (isHappy) R.drawable.nutria_feliz else R.drawable.nutria
                     ),
                     contentDescription = "Mascota $mascotaNombre",
                     modifier = Modifier
@@ -127,7 +133,7 @@ fun NutriaScreen(
 
             val interactionSource = remember { MutableInteractionSource() }
             val isPressed by interactionSource.collectIsPressedAsState()
-            val glowColor = if (isPressed) Color(0xFFFFCE5C) else Color.Transparent
+            val glowColor = if (isPressed) Color(0xFFFFA6D4) else Color.Transparent
 
             Box(
                 contentAlignment = Alignment.Center,
@@ -141,7 +147,7 @@ fun NutriaScreen(
                         isHappy = !isHappy
                         onElegirClick()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE3B0A8)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF92DEEF)),
                     shape = RoundedCornerShape(50.dp),
                     interactionSource = interactionSource,
                     modifier = Modifier.fillMaxSize()

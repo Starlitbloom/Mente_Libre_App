@@ -19,6 +19,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,7 +41,8 @@ import com.example.mente_libre_app.R
 fun ZorroScreen(
     mascotaNombre: String = "Zorro",
     mascotaDescripcion: String = "Con mi ingenio y rapidez, no hay nada que no podamos superar juntos.",
-    onElegirClick: () -> Unit = {}
+    onElegirClick: () -> Unit = {},
+    esSeleccionada: Boolean = false
 ) {
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
@@ -48,10 +50,14 @@ fun ZorroScreen(
 
     var isHappy by remember { mutableStateOf(false) } // controla si el mapache está feliz
 
+    LaunchedEffect(esSeleccionada) {
+        isHappy = esSeleccionada
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFAD2E21))
+            .background(Color(0xFF7DA038))
             .padding(vertical = 40.dp, horizontal = 20.dp)
     ) {
         Column(
@@ -87,7 +93,7 @@ fun ZorroScreen(
                         .height(170.dp)
                         .clip(RoundedCornerShape(30.dp))
                         .shadow(12.dp, RoundedCornerShape(30.dp))
-                        .background(Color(0xFFE3B0A8))
+                        .background(Color(0xFFE0ED64))
                 )
 
                 Image(
@@ -127,7 +133,7 @@ fun ZorroScreen(
 
             val interactionSource = remember { MutableInteractionSource() }
             val isPressed by interactionSource.collectIsPressedAsState()
-            val glowColor = if (isPressed) Color(0xFFFFCE5C) else Color.Transparent
+            val glowColor = if (isPressed) Color(0xFFF99E1E) else Color.Transparent
 
             Box(
                 contentAlignment = Alignment.Center,
@@ -141,7 +147,7 @@ fun ZorroScreen(
                         isHappy = !isHappy
                         onElegirClick()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE3B0A8)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE0ED64)),
                     shape = RoundedCornerShape(50.dp),
                     interactionSource = interactionSource,
                     modifier = Modifier.fillMaxSize()

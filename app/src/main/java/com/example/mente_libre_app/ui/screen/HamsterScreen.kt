@@ -25,14 +25,19 @@ import com.example.mente_libre_app.R
 @Composable
 fun HamsterScreen(
     mascotaNombre: String = "Hámster",
-    mascotaDescripcion: String = "\"Pequeño pero lleno de energía, ¡estaré a tu lado para alegrar tu día!\"",
-    onElegirClick: () -> Unit = {}
+    mascotaDescripcion: String = "Pequeño pero lleno de energía, ¡estaré a tu lado para alegrar tu día!",
+    onElegirClick: () -> Unit = {},
+    esSeleccionada: Boolean = false
 ) {
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
     val serifBlack = FontFamily(Font(R.font.source_serif_pro_black))
 
     var isHappy by remember { mutableStateOf(false) } // controla si el hamster está feliz
+
+    LaunchedEffect(esSeleccionada) {
+        isHappy = esSeleccionada
+    }
 
     Box(
         modifier = Modifier

@@ -1,5 +1,6 @@
 package com.example.mente_libre_app.navigation
 
+import android.net.Uri
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -13,6 +14,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.example.mente_libre_app.data.local.database.AppDatabase
 import com.example.mente_libre_app.data.repository.UserRepository
 import com.example.mente_libre_app.ui.screen.*
@@ -36,13 +39,8 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
     val goBienvenida  = { navController.navigate(Route.Bienvenida.path) }
     val goCrear       = { navController.navigate(Route.Crear.path) }
     val goMascota = { navController.navigate(Route.Mascota.path)}
-    val goHamster = { navController.navigate(Route.Hamster.path)}
-    val goMapache = { navController.navigate(Route.Mapache.path)}
-    val goZorro = { navController.navigate(Route.Zorro.path)}
-    val goPerro = { navController.navigate(Route.Perro.path)}
-    val goNutria = { navController.navigate(Route.Nutria.path)}
-    val goOveja = { navController.navigate(Route.Oveja.path)}
-    val goGato = { navController.navigate(Route.Gato.path)}
+    val goSelector = { navController.navigate(Route.Selector.path)}
+    val goNombrarMascota = { navController.navigate(Route.NombrarMascota.path)}
     val goIniciar     = { navController.navigate(Route.Iniciar.path) }
 
     // Inicialización de DB, DAO y repositorio
@@ -127,7 +125,28 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
                     )
                 }
                 composable(Route.Mascota.path) {
-                    MascotaScreen(onNext = goHamster)
+                    MascotaScreen(onNext = goSelector)
+                }
+                composable(Route.Selector.path) {
+                    SelectorScreen(
+                        onMascotaElegida = { mascota ->
+                            val encoded = Uri.encode(mascota)
+                            navController.navigate("nombrar_mascota/$encoded")
+                        }
+                    )
+                }
+                composable(
+                    route = "nombrar_mascota/{mascota}",
+                    arguments = listOf(navArgument("mascota") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val mascota = backStackEntry.arguments?.getString("mascota") ?: ""
+                    NombrarMascotaScreen(
+                        mascota = mascota,
+                        onGuardarNombre = { nombre ->
+                            println("Mascota: $mascota, Nombre: $nombre")
+                            // Aquí puedes guardar en DataStore o ir a la siguiente pantalla
+                        }
+                    )
                 }
             }
         }
