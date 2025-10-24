@@ -103,7 +103,7 @@ fun MapacheScreen(
                     ),
                     contentDescription = "Mascota $mascotaNombre",
                     modifier = Modifier
-                        .size(if (isHappy) 400.dp else 190.dp)
+                        .size(if (isHappy) 400.dp else 300.dp)
                         .offset(y = 50.dp) // sobresale por abajo
                 )
             }

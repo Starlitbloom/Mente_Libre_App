@@ -50,7 +50,7 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.compose.material3)
+    implementation("androidx.compose.material3:material3:1.2.0-alpha03")
     implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.compose.foundation)
     testImplementation(libs.junit)
@@ -76,4 +76,6 @@ dependencies {
     kapt("androidx.room:room-compiler:2.7.1")
     //Data Store Preferencia
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    // Datos biometricos
+    implementation("androidx.biometric:biometric:1.2.0-alpha05")
 }

@@ -10,6 +10,8 @@ sealed class Route(val path: String) {
     data object Bienvenida4 : Route("bienvenida4")
     data object Bienvenida : Route("bienvenida")
     data object Crear : Route("crear")
+    data object Objetivo : Route("objetivo")
+    data object Huella : Route("huella")
     data object Mascota : Route("mascota")
     data object Selector : Route("selector")
 

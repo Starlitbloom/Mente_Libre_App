@@ -98,11 +98,11 @@ fun ZorroScreen(
 
                 Image(
                     painter = painterResource(
-                        id = if (isHappy) R.drawable.gato_feliz else R.drawable.zorro
+                        id = if (isHappy) R.drawable.zorro_feliz else R.drawable.zorro
                     ),
                     contentDescription = "Mascota $mascotaNombre",
                     modifier = Modifier
-                        .size(if (isHappy) 400.dp else 190.dp)
+                        .size(if (isHappy) 400.dp else 220.dp)
                         .offset(y = 50.dp) // sobresale por abajo
                 )
             }
