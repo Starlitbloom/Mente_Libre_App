@@ -40,6 +40,7 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
     val goBienvenida  = { navController.navigate(Route.Bienvenida.path) }
     val goCrear       = { navController.navigate(Route.Crear.path) }
     val goObjetivo = { navController.navigate(Route.Objetivo.path)}
+    val goGenero = { navController.navigate(Route.Genero.path)}
     val goHuella = { navController.navigate(Route.Huella.path)}
     val goMascota = { navController.navigate(Route.Mascota.path)}
     val goSelector = { navController.navigate(Route.Selector.path)}
@@ -117,7 +118,10 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
                     )
                 }
                 composable(Route.Objetivo.path) {
-                    ObjetivoScreen(onNext = goHuella)
+                    ObjetivoScreen(onNext = goGenero)
+                }
+                composable(Route.Genero.path) {
+                    GeneroScreen(onNext = goHuella)
                 }
                 composable(Route.Huella.path) {
                     val activity = LocalContext.current as FragmentActivity

@@ -6,10 +6,16 @@ import android.provider.Settings
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,18 +23,23 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.example.mente_libre_app.R
+import com.example.mente_libre_app.ui.theme.ButtonMagenta
+import com.example.mente_libre_app.ui.theme.MainColor
 
 @Composable
 fun HuellaScreen(
     activity: FragmentActivity, // Activity segura
     onVerificado: () -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
     val context = LocalContext.current
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
@@ -61,21 +72,21 @@ fun HuellaScreen(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
             Text(
-                text = "Huellas Dactilares",
+                text = "Huella Dactilar",
                 color = Color(0xFF842C46),
                 fontFamily = serifBold,
-                fontSize = 28.sp
+                fontSize = 35.sp
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "Escanea tus huellas dactilares para que el ingreso a tu aplicación sea más seguro.",
+                text = "Escanea tu huella dactilar para que el ingreso a tu aplicación sea más seguro. Puedes desactivar esta opción luego en ajustes.",
                 color = Color(0xFF842C46),
                 fontFamily = serifRegular,
                 textAlign = TextAlign.Center,
-                fontSize = 16.sp,
-                lineHeight = 20.sp
+                fontSize = 20.sp,
+                lineHeight = 25.sp
             )
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -83,38 +94,56 @@ fun HuellaScreen(
             Icon(
                 painter = painterResource(id = R.drawable.huella_dactilar),
                 contentDescription = "Huella digital",
-                tint = Color.White,
+                tint = Color(0xFF842C46),
                 modifier = Modifier.size(150.dp)
             )
 
             Spacer(modifier = Modifier.height(40.dp))
-
-            mensajeError?.let {
+            Box(
+                modifier = Modifier
+                    .height(19.dp)   // espacio fijo
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) { mensajeError?.let {
                 Text(
                     text = it,
                     color = Color.Red,
                     fontFamily = serifRegular,
-                    fontSize = 14.sp,
+                    fontSize = 12.sp,
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(8.dp))
+                }
             }
 
+
+
             if (verificado) {
+                // Botón redondo tipo FloatingActionButton
+                Spacer(modifier = Modifier.height(33.dp))
                 Button(
-                    onClick = onVerificado,
+                    onClick = { onVerificado() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isPressed) MainColor else ButtonMagenta
+                    ),
                     shape = RoundedCornerShape(50.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD94775)),
+                    interactionSource = interactionSource,
                     modifier = Modifier
-                        .fillMaxWidth(0.7f)
-                        .height(60.dp)
+                        .fillMaxWidth(0.8f)
+                        .height(65.dp)
                 ) {
-                    Text(
-                        text = "Siguiente",
-                        fontFamily = serifBold,
-                        fontSize = 20.sp,
-                        color = Color.White
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Siguiente",
+                            color = Color.White,
+                            fontWeight = FontWeight.Normal,
+                            fontFamily = serifRegular,
+                            fontSize = 30.sp
+                        )
+                    }
                 }
             } else {
                 if (tieneHuella) {
@@ -124,7 +153,7 @@ fun HuellaScreen(
                         fontFamily = serifRegular,
                         fontSize = 15.sp
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(15.dp))
                     Button(
                         onClick = {
                             autenticarHuella(
@@ -133,18 +162,27 @@ fun HuellaScreen(
                                 onError = { mensajeError = it }
                             )
                         },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isPressed) MainColor else ButtonMagenta
+                        ),
                         shape = RoundedCornerShape(50.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD94775)),
+                        interactionSource = interactionSource,
                         modifier = Modifier
-                            .fillMaxWidth(0.7f)
-                            .height(60.dp)
+                            .fillMaxWidth(0.8f)
+                            .height(65.dp)
                     ) {
-                        Text(
-                            text = "Intentar de nuevo",
-                            fontFamily = serifBold,
-                            fontSize = 18.sp,
-                            color = Color.White
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "Intentar de nuevo",
+                                color = Color.White,
+                                fontWeight = FontWeight.Normal,
+                                fontFamily = serifRegular,
+                                fontSize = 23.sp
+                            )
+                        }
                     }
                 } else {
                     Button(onClick = {
@@ -190,11 +228,6 @@ fun autenticarHuella(
                 } else {
                     onError(errString.toString())
                 }
-            }
-
-            override fun onAuthenticationFailed() {
-                super.onAuthenticationFailed()
-                onError("No se reconoció la huella.")
             }
         }
     )
