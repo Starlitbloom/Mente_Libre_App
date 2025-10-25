@@ -13,7 +13,6 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
@@ -22,7 +21,6 @@ import com.example.mente_libre_app.data.repository.UserRepository
 import com.example.mente_libre_app.ui.screen.*
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModel
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModelFactory
-import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModel
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -40,10 +38,6 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
     val goBienvenida4 = { navController.navigate(Route.Bienvenida4.path) }
     val goBienvenida  = { navController.navigate(Route.Bienvenida.path) }
     val goCrear       = { navController.navigate(Route.Crear.path) }
-    val goObjetivo = { navController.navigate(Route.Objetivo.path)}
-    val goGenero = { navController.navigate(Route.Genero.path)}
-    val goFoto = { navController.navigate(Route.Foto.path)}
-    val goHuella = { navController.navigate(Route.Huella.path)}
     val goMascota = { navController.navigate(Route.Mascota.path)}
     val goSelector = { navController.navigate(Route.Selector.path)}
     val goNombrarMascota = { navController.navigate(Route.NombrarMascota.path)}
@@ -114,29 +108,20 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
                 }
                 composable(Route.Crear.path) {
                     CrearScreenVm(
-                        authViewModel = authViewModel,
-                        onComenzarClick = goObjetivo,
+                        authViewModel = authViewModel,  // ✅ correcto
+                        onComenzarClick = goMascota,
                         onLoginClick = goIniciar
                     )
                 }
-                composable(Route.Objetivo.path) {
-                    ObjetivoScreen(onNext = goGenero)
-                }
-                composable(Route.Genero.path) {
-                    GeneroScreen(onNext = goFoto)
-                }
-                composable(Route.Foto.path) {
-                    val usuarioViewModel: UsuarioViewModel = viewModel()
-                    FotoScreen(
-                        usuarioViewModel = usuarioViewModel,
-                        onNext = goHuella
-                    )
-                }
-                composable(Route.Huella.path) {
-                    val activity = LocalContext.current as FragmentActivity
-                    HuellaScreen(
-                        activity = activity,
-                        onVerificado = goMascota
+                composable(Route.Iniciar.path) {
+                    IniciarScreenVm(
+                        authViewModel = authViewModel, // ✅ usa el mismo ViewModel
+                        onRegisterClick = goCrear,      // para ir a crear cuenta
+                        onLoginSuccess = {
+                            // Aquí defines qué pasa al iniciar sesión correctamente
+                            println("Login exitoso")
+                            // navController.navigate(Route.Home.path) por ejemplo
+                        }
                     )
                 }
                 composable(Route.Mascota.path) {
@@ -160,17 +145,6 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
                         onGuardarNombre = { nombre ->
                             println("Mascota: $mascota, Nombre: $nombre")
                             // Aquí puedes guardar en DataStore o ir a la siguiente pantalla
-                        }
-                    )
-                }
-                composable(Route.Iniciar.path) {
-                    IniciarScreenVm(
-                        authViewModel = authViewModel,
-                        onRegisterClick = goCrear,      // para ir a crear cuenta
-                        onLoginSuccess = {
-                            // Aquí defines qué pasa al iniciar sesión correctamente
-                            println("Login exitoso")
-                            // navController.navigate(Route.Home.path) por ejemplo
                         }
                     )
                 }
