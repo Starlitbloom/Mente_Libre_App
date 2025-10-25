@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mente_libre_app.R
+import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModel
 
 @Composable
 fun GeneroScreen(onNext: () -> Unit) {
@@ -45,6 +46,8 @@ fun GeneroScreen(onNext: () -> Unit) {
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
+    val usuarioViewModel: UsuarioViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val contexto = LocalContext.current
 
     var generoSeleccionado by remember { mutableStateOf<String?>(null) }
 
@@ -110,7 +113,12 @@ fun GeneroScreen(onNext: () -> Unit) {
             )
 
             Button(
-                onClick = { if (generoSeleccionado != null) onNext() },
+                onClick = {
+                    if (generoSeleccionado != null) {
+                        usuarioViewModel.guardarGenero(contexto, generoSeleccionado!!)
+                        onNext()
+                    }
+                },
                 enabled = generoSeleccionado != null,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = animatedColor,

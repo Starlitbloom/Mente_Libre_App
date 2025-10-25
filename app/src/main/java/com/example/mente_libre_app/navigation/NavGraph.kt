@@ -22,6 +22,7 @@ import com.example.mente_libre_app.data.repository.UserRepository
 import com.example.mente_libre_app.ui.screen.*
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModel
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModelFactory
+import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModel
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -41,6 +42,7 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
     val goCrear       = { navController.navigate(Route.Crear.path) }
     val goObjetivo = { navController.navigate(Route.Objetivo.path)}
     val goGenero = { navController.navigate(Route.Genero.path)}
+    val goFoto = { navController.navigate(Route.Foto.path)}
     val goHuella = { navController.navigate(Route.Huella.path)}
     val goMascota = { navController.navigate(Route.Mascota.path)}
     val goSelector = { navController.navigate(Route.Selector.path)}
@@ -121,7 +123,14 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
                     ObjetivoScreen(onNext = goGenero)
                 }
                 composable(Route.Genero.path) {
-                    GeneroScreen(onNext = goHuella)
+                    GeneroScreen(onNext = goFoto)
+                }
+                composable(Route.Foto.path) {
+                    val usuarioViewModel: UsuarioViewModel = viewModel()
+                    FotoScreen(
+                        usuarioViewModel = usuarioViewModel,
+                        onNext = goHuella
+                    )
                 }
                 composable(Route.Huella.path) {
                     val activity = LocalContext.current as FragmentActivity
@@ -130,7 +139,6 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
                         onVerificado = goMascota
                     )
                 }
-
                 composable(Route.Mascota.path) {
                     MascotaScreen(onNext = goSelector)
                 }

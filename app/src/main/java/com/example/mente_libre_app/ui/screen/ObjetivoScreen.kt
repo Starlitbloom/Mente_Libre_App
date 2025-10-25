@@ -20,16 +20,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import com.example.mente_libre_app.R
 import com.example.mente_libre_app.ui.theme.ButtonMagenta
 import com.example.mente_libre_app.ui.theme.Gray
 import com.example.mente_libre_app.ui.theme.MainColor
+import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModel
 
 @Composable
 fun ObjetivoScreen(onNext: () -> Unit) {
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
+    val contexto = LocalContext.current
+    val viewModel = remember { UsuarioViewModel() }
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
@@ -93,7 +97,12 @@ fun ObjetivoScreen(onNext: () -> Unit) {
             )
 
             Button(
-                onClick = { if (opcionSeleccionada != null) onNext() },
+                onClick = {
+                    if (opcionSeleccionada != null) {
+                        viewModel.guardarObjetivo(contexto, opcionSeleccionada!!)
+                        onNext()
+                    }
+                },
                 enabled = opcionSeleccionada != null,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = animatedColor,
@@ -164,7 +173,7 @@ fun ObjetivoOption(
         ) {
             Text(
                 text = texto,
-                color = Color(0xFF4C3C3C),
+                color = Color(0xFF842C46),
                 fontFamily = serifRegular,
                 fontSize = 17.sp
             )
