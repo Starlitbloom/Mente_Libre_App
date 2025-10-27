@@ -28,6 +28,7 @@ import androidx.navigation.navArgument
 import com.example.mente_libre_app.data.local.database.AppDatabase
 import com.example.mente_libre_app.data.repository.UserRepository
 import com.example.mente_libre_app.ui.screen.AjustesScreen
+import com.example.mente_libre_app.ui.screen.AnimoScreen
 import com.example.mente_libre_app.ui.screen.Bienvenida1Screen
 import com.example.mente_libre_app.ui.screen.Bienvenida2Screen
 import com.example.mente_libre_app.ui.screen.Bienvenida3Screen
@@ -246,6 +247,12 @@ fun AppNavGraph(
                         onGoAnimo = goAnimo // 🔹 aquí estaba el problema
                     )
                 }
+                composable(Route.Animo.path) {
+                    AnimoScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
                 composable(Route.Ajustes.path) {
                     AjustesScreen(
                         onItemSelected = { selectedItem ->
