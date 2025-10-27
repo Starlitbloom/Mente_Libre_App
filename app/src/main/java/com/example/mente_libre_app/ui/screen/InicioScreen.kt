@@ -28,6 +28,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -46,6 +48,9 @@ private val Texto = Color(0xFF842C46)
 private val Acento = Color(0xFFFF6D9B)
 private val CardRosa = Color(0xFFFFDCE3)
 private val CardVerde = Color(0xFF9DB25D)
+val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
+val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
+
 
 // Tarjetas de Tips / Consejos
 private val TipBg = Color.White            // ← ahora blanco

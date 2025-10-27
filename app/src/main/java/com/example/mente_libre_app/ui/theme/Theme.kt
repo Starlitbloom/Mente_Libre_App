@@ -11,49 +11,59 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 
-private val DarkColorScheme = darkColorScheme(
-    primary = PinkDark,
-    secondary = PinkPrimary,
-    tertiary = PinkLight,
-    background = PinkDark,
-    surface = PinkDark,
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color.White,
-    onSurface = Color.White
+
+val PinkColors = lightColorScheme(
+    primary = MainColor,
+    secondary = ButtonMagenta,
+    tertiary = BorderOrange,
+    background = PinkPrimary,
+    surface = White,
+    onPrimary = ButtonYellow,
+    onSecondary = PinkGray,
+    onTertiary = IconPink,
+    onBackground = MainColor,
+    onSurface = Gray
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = PinkPrimary,
-    secondary = PinkLight,
-    tertiary = PinkDark,
-    background = PinkPrimary,
-    surface = PinkPrimary,
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color.White,
-    onSurface = Color.White
+val PurpleColors = lightColorScheme(
+    primary = MainColorP,
+    secondary = ButtonPurple,
+    tertiary = BorderLightblue,
+    background = PurplePrimary,
+    surface = WhiteP,
+    onPrimary = ButtonLightYellow,
+    onSecondary = PurpleGray,
+    onTertiary = IconPurple,
+    onBackground = MainColor,
+    onSurface = GrayP
+)
+
+val GreenColors = lightColorScheme(
+    primary = MainColorG,
+    secondary = ButtonGreen,
+    tertiary = BorderOrangeG,
+    background = GreenPrimary,
+    surface = WhiteG,
+    onPrimary = ButtonCreamYellow,
+    onSecondary = PGreenGray,
+    onTertiary = IconGreen,
+    onBackground = MainColor,
+    onSurface = GrayG
 )
 
 @Composable
 fun Mente_Libre_AppTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    selectedTheme: String?, // puede ser "Pink", "Purple" o "Green"
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+    val colors = when (selectedTheme) {
+        "Purple" -> PurpleColors
+        "Green" -> GreenColors
+        else -> PinkColors // por defecto rosado
     }
 
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = colors,
         typography = Typography,
         content = content
     )

@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -50,6 +52,7 @@ fun GatoScreen(
 
     var isHappy by remember { mutableStateOf(false) } // controla si el mapache está feliz
 
+    val scrollState = rememberScrollState()
     LaunchedEffect(esSeleccionada) {
         isHappy = esSeleccionada
     }
@@ -62,7 +65,9 @@ fun GatoScreen(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
         ) {
             Text(
                 text = "Mascota",

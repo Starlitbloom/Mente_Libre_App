@@ -6,7 +6,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,6 +35,7 @@ fun HamsterScreen(
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
     val serifBlack = FontFamily(Font(R.font.source_serif_pro_black))
 
+    val scrollState = rememberScrollState()
     var isHappy by remember { mutableStateOf(false) } // controla si el hamster está feliz
 
     LaunchedEffect(esSeleccionada) {
@@ -47,7 +50,9 @@ fun HamsterScreen(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
         ) {
             Text(
                 text = "Mascota",
