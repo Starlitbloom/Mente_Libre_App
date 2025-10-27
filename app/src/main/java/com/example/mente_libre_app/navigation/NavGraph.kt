@@ -243,7 +243,7 @@ fun AppNavGraph(
                                 3 -> navController.navigate(Route.Ajustes.path)
                             }
                         },
-                        onGoAnimo = { /* Ir a detalle Ánimo */ }
+                        onGoAnimo = goAnimo // 🔹 aquí estaba el problema
                     )
                 }
                 composable(Route.Ajustes.path) {
