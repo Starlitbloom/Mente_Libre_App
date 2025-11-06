@@ -41,7 +41,7 @@ fun MascotaScreen(onNext: () -> Unit) {
         Text(
             text = "¡Hola! ¡Bienvenido a\nMente Libre!\n \n" +
                     "Soy tu futura\ncompañera de bienestar\ny estoy aquí para\nayudarte en cada paso.\n \n" +
-                    "Pero antes de comenzar,\n¿qué te parecería elegir\n" +
+                    "Pero antes de continuar,\n¿qué te parecería elegir\n" +
                     "un compañero fiel que\nte acompañe en este\ncamino?",
             fontSize = 25.sp,
             fontFamily = FontFamily(

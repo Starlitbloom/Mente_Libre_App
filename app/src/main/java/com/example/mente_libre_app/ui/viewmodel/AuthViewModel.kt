@@ -1,9 +1,12 @@
 package com.example.mente_libre_app.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mente_libre_app.data.local.storage.UsuarioPreferences
 import com.example.mente_libre_app.data.repository.UserRepository
 import com.example.mente_libre_app.domain.validation.*
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -20,6 +23,7 @@ data class LoginUiState(
     val success: Boolean = false,
     val errorMsg: String? = null
 )
+
 data class RegisterUiState(
     val name: String = "",
     val email: String = "",
@@ -40,17 +44,19 @@ data class RegisterUiState(
 )
 
 class AuthViewModel(
-    private val repository: UserRepository
+    private val repository: UserRepository,
+    private val context: Context
 ) : ViewModel() {
 
-    private val _login = MutableStateFlow(LoginUiState())   // Estado interno (Login)
+    // ----------------- STATE -----------------
+    private val _login = MutableStateFlow(LoginUiState())
     val login: StateFlow<LoginUiState> = _login
+    val isLoggedIn: Flow<Boolean> = UsuarioPreferences.obtenerSesion(context)
 
     private val _register = MutableStateFlow(RegisterUiState())
     val register: StateFlow<RegisterUiState> = _register
 
-    // ----------------- HANDLERS -----------------
-
+    // ----------------- LOGIN HANDLERS -----------------
     fun onLoginEmailChange(value: String) {
         _login.update { it.copy(email = value, emailError = validateEmail(value)) }
         recomputeLoginCanSubmit()
@@ -75,12 +81,17 @@ class AuthViewModel(
             _login.update { it.copy(isSubmitting = true, errorMsg = null, success = false) }
             val result = repository.login(s.email.trim(), s.pass)
             _login.update {
-                if (result.isSuccess) it.copy(isSubmitting = false, success = true, errorMsg = null)
-                else it.copy(
-                    isSubmitting = false,
-                    success = false,
-                    errorMsg = result.exceptionOrNull()?.message ?: "Error de login"
-                )
+                if (result.isSuccess) {
+                    // Guardar sesión si login fue exitoso
+                    UsuarioPreferences.guardarSesion(context, true)
+                    it.copy(isSubmitting = false, success = true, errorMsg = null)
+                } else {
+                    it.copy(
+                        isSubmitting = false,
+                        success = false,
+                        errorMsg = result.exceptionOrNull()?.message ?: "Error de login"
+                    )
+                }
             }
         }
     }
@@ -89,7 +100,7 @@ class AuthViewModel(
         _login.update { it.copy(success = false, errorMsg = null) }
     }
 
-    // --- REGISTRO ---
+    // ----------------- REGISTER HANDLERS -----------------
     fun onNameChange(value: String) {
         val filtered = value.filter { it.isLetter() || it.isWhitespace() }
         _register.update { it.copy(name = filtered, nameError = validateNameLettersOnly(filtered)) }
@@ -123,16 +134,12 @@ class AuthViewModel(
         recomputeCanSubmit()
     }
 
-    // ----------------- BOTÓN "Registrar" -----------------
-
     private fun recomputeCanSubmit() {
         val s = _register.value
         val noErrors = listOf(s.nameError, s.emailError, s.phoneError, s.passError, s.confirmError).all { it == null }
         val filled = s.name.isNotBlank() && s.email.isNotBlank() && s.phone.isNotBlank() && s.pass.isNotBlank() && s.confirm.isNotBlank()
         _register.update { it.copy(canSubmit = noErrors && filled) }
     }
-
-    // ----------------- ENVÍO -----------------
 
     fun submitRegister() {
         val s = _register.value
@@ -161,7 +168,12 @@ class AuthViewModel(
 
     fun clearRegisterResult() {
         _register.update { it.copy(success = false, errorMsg = null) }
+    }
 
-
+    // ----------------- LOGOUT -----------------
+    fun logout() {
+        viewModelScope.launch {
+            UsuarioPreferences.cerrarSesion(context)
+        }
     }
 }

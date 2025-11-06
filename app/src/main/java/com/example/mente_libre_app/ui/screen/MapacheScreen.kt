@@ -15,7 +15,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -49,6 +51,7 @@ fun MapacheScreen(
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
     val serifBlack = FontFamily(Font(R.font.source_serif_pro_black))
 
+    val scrollState = rememberScrollState()
     var isHappy by remember { mutableStateOf(false) } // controla si el mapache está feliz
 
     LaunchedEffect(esSeleccionada) {
@@ -64,6 +67,7 @@ fun MapacheScreen(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
+                .verticalScroll(scrollState)
         ) {
             Text(
                 text = "Mascota",

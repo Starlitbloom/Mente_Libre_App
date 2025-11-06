@@ -1,30 +1,66 @@
 package com.example.mente_libre_app.navigation
 
 import android.net.Uri
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
-import com.google.accompanist.navigation.animation.AnimatedNavHost
-import com.google.accompanist.navigation.animation.composable
-import com.google.accompanist.navigation.animation.rememberAnimatedNavController
-import androidx.compose.animation.*
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
+import androidx.navigation.activity
 import androidx.navigation.navArgument
 import com.example.mente_libre_app.data.local.database.AppDatabase
 import com.example.mente_libre_app.data.repository.UserRepository
-import com.example.mente_libre_app.ui.screen.*
+import com.example.mente_libre_app.ui.screen.AjustesScreen
+import com.example.mente_libre_app.ui.screen.AnimoScreen
+import com.example.mente_libre_app.ui.screen.Bienvenida1Screen
+import com.example.mente_libre_app.ui.screen.Bienvenida2Screen
+import com.example.mente_libre_app.ui.screen.Bienvenida3Screen
+import com.example.mente_libre_app.ui.screen.Bienvenida4Screen
+import com.example.mente_libre_app.ui.screen.BienvenidaScreen
+import com.example.mente_libre_app.ui.screen.CargandoScreen
+import com.example.mente_libre_app.ui.screen.CrearScreenVm
+import com.example.mente_libre_app.ui.screen.FotoScreen
+import com.example.mente_libre_app.ui.screen.FraseScreen
+import com.example.mente_libre_app.ui.screen.GeneroScreen
+import com.example.mente_libre_app.ui.screen.HuellaScreen
+import com.example.mente_libre_app.ui.screen.IniciarScreenVm
+import com.example.mente_libre_app.ui.screen.InicioScreen
+import com.example.mente_libre_app.ui.screen.MascotaScreen
+import com.example.mente_libre_app.ui.screen.NombrarMascotaScreen
+import com.example.mente_libre_app.ui.screen.ObjetivoScreen
+import com.example.mente_libre_app.ui.screen.PerfilScreen
+import com.example.mente_libre_app.ui.screen.PortadaScreen
+import com.example.mente_libre_app.ui.screen.SelectorScreen
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModel
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModelFactory
+import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModel
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.composable
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController()) {
+fun AppNavGraph(
+    navController: NavHostController = rememberAnimatedNavController(),
+    activity: FragmentActivity
+) {
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -38,19 +74,26 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
     val goBienvenida4 = { navController.navigate(Route.Bienvenida4.path) }
     val goBienvenida  = { navController.navigate(Route.Bienvenida.path) }
     val goCrear       = { navController.navigate(Route.Crear.path) }
+    val goObjetivo = { navController.navigate(Route.Objetivo.path)}
+    val goGenero = { navController.navigate(Route.Genero.path)}
+    val goFoto = { navController.navigate(Route.Foto.path)}
+    val goHuella = { navController.navigate(Route.Huella.path)}
     val goMascota = { navController.navigate(Route.Mascota.path)}
     val goSelector = { navController.navigate(Route.Selector.path)}
     val goNombrarMascota = { navController.navigate(Route.NombrarMascota.path)}
     val goIniciar     = { navController.navigate(Route.Iniciar.path) }
+    val goInicio    = { navController.navigate(Route.Inicio.path) }
+    val goAjustes    = { navController.navigate(Route.Ajustes.path) }
+    val goPerfil     = { navController.navigate(Route.Perfil.path) }
+    val goAnimo = { navController.navigate(Route.Animo.path) }
 
     // Inicialización de DB, DAO y repositorio
     val context = LocalContext.current
     val dao = AppDatabase.getInstance(context).userDao()
     val repository = UserRepository(dao)
-    val factory = AuthViewModelFactory(repository)
-
-    // AuthViewModel con factory
+    val factory = AuthViewModelFactory(repository, context)
     val authViewModel: AuthViewModel = viewModel(factory = factory)
+
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -79,7 +122,15 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
                 }
             ) {
                 composable(Route.Portada.path) {
+                    val isLoggedIn by authViewModel.isLoggedIn.collectAsState(initial = false)
                     PortadaScreen(onNext = goCargando)
+                    LaunchedEffect(isLoggedIn) {
+                        if (isLoggedIn) {
+                            navController.navigate(Route.Inicio.path) {
+                                popUpTo(Route.Portada.path) { inclusive = true }
+                            }
+                        }
+                    }
                 }
                 composable(Route.Cargando.path) {
                     CargandoScreen(onNext = goFrase)
@@ -108,20 +159,44 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
                 }
                 composable(Route.Crear.path) {
                     CrearScreenVm(
-                        authViewModel = authViewModel,  // ✅ correcto
-                        onComenzarClick = goMascota,
+                        authViewModel = authViewModel,
+                        onComenzarClick = goObjetivo,
                         onLoginClick = goIniciar
                     )
                 }
-                composable(Route.Iniciar.path) {
-                    IniciarScreenVm(
-                        authViewModel = authViewModel, // ✅ usa el mismo ViewModel
-                        onRegisterClick = goCrear,      // para ir a crear cuenta
-                        onLoginSuccess = {
-                            // Aquí defines qué pasa al iniciar sesión correctamente
-                            println("Login exitoso")
-                            // navController.navigate(Route.Home.path) por ejemplo
+                composable(Route.Objetivo.path) {
+                    ObjetivoScreen(onNext = goGenero)
+                }
+                composable(Route.Genero.path) {
+                    GeneroScreen(onNext = { navController.navigate("FotoScreen") })
+                }
+                composable(
+                    route = "FotoScreen?isEditingProfile={isEditingProfile}",
+                    arguments = listOf(
+                        navArgument("isEditingProfile") {
+                            type = NavType.BoolType
+                            defaultValue = false  // valor por defecto si no se pasa
                         }
+                    )
+                ) { backStackEntry ->
+                    val usuarioViewModel: UsuarioViewModel = viewModel()
+                    val isEditing = backStackEntry.arguments?.getBoolean("isEditingProfile") ?: false
+                    FotoScreen(
+                        usuarioViewModel = usuarioViewModel,
+                        isEditingProfile = isEditing,
+                        onNext = {
+                            if (isEditing) {
+                                navController.popBackStack() // 🔙 vuelve al perfil
+                            } else {
+                                navController.navigate(Route.Huella.path) // ➡️ avanza al siguiente paso
+                            }
+                        }
+                    )
+                }
+                composable(Route.Huella.path) {
+                    HuellaScreen(
+                        activity = activity,
+                        onVerificado = goMascota
                     )
                 }
                 composable(Route.Mascota.path) {
@@ -144,7 +219,67 @@ fun AppNavGraph(navController: NavHostController = rememberAnimatedNavController
                         mascota = mascota,
                         onGuardarNombre = { nombre ->
                             println("Mascota: $mascota, Nombre: $nombre")
-                            // Aquí puedes guardar en DataStore o ir a la siguiente pantalla
+                            navController.navigate(Route.Inicio.path) {
+                                // Esto asegura que al ir a inicio se limpie el backstack para no volver a la pantalla de nombrar mascota
+                                popUpTo(Route.Portada.path) { inclusive = false }
+                                launchSingleTop = true
+                            }
+                        }
+                    )
+                }
+                composable(Route.Iniciar.path) {
+                    IniciarScreenVm(
+                        authViewModel = authViewModel, // ✅ usa el mismo ViewModel
+                        onRegisterClick = goCrear,      // para ir a crear cuenta
+                        onLoginSuccess = goInicio
+                    )
+                }
+                composable(Route.Inicio.path) {
+                    InicioScreen(
+                        onNavChange = { index ->
+                            when (index) {
+                                0 -> navController.navigate(Route.Inicio.path)
+                                1 -> { /* Hábitos */ }
+                                2 -> navController.navigate(Route.Perfil.path)
+                                3 -> navController.navigate(Route.Ajustes.path)
+                            }
+                        },
+                        onGoAnimo = goAnimo // 🔹 aquí estaba el problema
+                    )
+                }
+                composable(Route.Animo.path) {
+                    AnimoScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Route.Ajustes.path) {
+                    AjustesScreen(
+                        onItemSelected = { selectedItem ->
+                            when (selectedItem) {
+                                "inicio" -> navController.navigate(Route.Inicio.path)
+                                "perfil" -> navController.navigate(Route.Perfil.path)
+                                // Agregar otros items si los tenés
+                            }
+                        },
+                        onPerfilClick = { navController.navigate(Route.Perfil.path) },
+                        onSeguridadClick = { /* ir a pantalla Seguridad */ },
+                        onNotificacionesClick = { /* ir a pantalla Notificaciones */ },
+                        onDispositivosClick = { /* ir a pantalla Dispositivos */ },
+                        onEmergenciaClick = { /* ir a pantalla Emergencia */ },
+                        onSoporteClick = { /* ir a pantalla Soporte */ },
+                        onSugerenciasClick = { /* ir a pantalla Sugerencias */ },
+                        onCerrarSesion = { /* acción cerrar sesión */ }
+                    )
+                }
+                composable(Route.Perfil.path) {
+                    val usuarioViewModel: UsuarioViewModel = viewModel()
+                    PerfilScreen(
+                        usuarioViewModel = usuarioViewModel,
+                        authViewModel = authViewModel,
+                        onBackClick = { navController.popBackStack() },
+                        onEditarFotoClick = {
+                            navController.navigate("FotoScreen?isEditingProfile=true")
                         }
                     )
                 }

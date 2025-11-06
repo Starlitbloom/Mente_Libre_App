@@ -46,7 +46,8 @@ import java.util.Locale
 @Composable
 fun FotoScreen(
     usuarioViewModel: UsuarioViewModel,
-    onNext: () -> Unit
+    onNext: () -> Unit,
+    isEditingProfile: Boolean = false
 ) {
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
@@ -187,6 +188,14 @@ fun FotoScreen(
                             .clickable {
                                 avatarSeleccionado = index
                                 fotoPersonalizada = null
+                                // 🔹 Guardar avatar en ViewModel
+                                coroutineScope.launch {
+                                    // Guardamos el recurso como string, o ajusta según tu ViewModel
+                                    usuarioViewModel.guardarFoto(
+                                        context,
+                                        "android.resource://${context.packageName}/$avatar"
+                                    )
+                                }
                             }
                     )
                 }
@@ -219,7 +228,7 @@ fun FotoScreen(
                 text = "Tenemos un conjunto personalizable de avatar. O puedes cargar tu propia imagen.",
                 color = Color(0xFF842C46),
                 fontFamily = serifRegular,
-                fontSize = 16.sp,
+                fontSize = 17.sp,
                 textAlign = TextAlign.Center
             )
 
@@ -275,9 +284,16 @@ fun FotoScreen(
                 targetValue = if (isPressed) pressedColor else baseColor,
                 label = "buttonPressAnimation"
             )
+            val buttonText = if (isEditingProfile) "Guardar" else "Siguiente"
 
             Button(
-                onClick = { onNext() },
+                onClick = {
+                    if (isEditingProfile) {
+                        onNext() // vuelve a PerfilScreen
+                    } else {
+                        onNext() // sigue flujo normal
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = animatedColor),
                 shape = RoundedCornerShape(50.dp),
                 interactionSource = interactionSource,
@@ -286,7 +302,7 @@ fun FotoScreen(
                     .height(65.dp)
             ) {
                 Text(
-                    text = "Siguiente",
+                    text = buttonText,
                     color = Color.White,
                     fontFamily = serifRegular,
                     fontSize = 30.sp
@@ -310,7 +326,7 @@ fun FotoScreen(
                 )
             }
         }
-        Spacer(modifier = Modifier.height(35.dp)) // Ajusta según necesites
+        Spacer(modifier = Modifier.height(25.dp)) // Ajusta según necesites
     }
 }
 // Función que abre la cámara con URI válido
