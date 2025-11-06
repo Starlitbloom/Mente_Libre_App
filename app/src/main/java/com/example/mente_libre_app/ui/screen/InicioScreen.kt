@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -35,6 +36,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+// 🔹 NEW: imports para leer la BD y calcular el puntaje real
+import com.example.mente_libre_app.data.local.mood.MoodDao
+import com.example.mente_libre_app.data.local.mood.MoodDatabase
+import com.example.mente_libre_app.data.local.mood.MoodEntry
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import kotlin.math.roundToInt
 
 /* ============================================================
    InicioScreen — Tips + Consejos Semanales (tarjetas blancas,
@@ -48,18 +59,54 @@ private val CardRosa = Color(0xFFFFDCE3)
 private val CardVerde = Color(0xFF9DB25D)
 
 // Tarjetas de Tips / Consejos
-private val TipBg = Color.White            // ← ahora blanco
-private val TipOvalBg = Color(0xFFF6EEF1)  // fondo claro del óvalo
-private val TipTitle = Texto               // mismo color que títulos
+private val TipBg = Color.White
+private val TipOvalBg = Color(0xFFF6EEF1)
+private val TipTitle = Texto
 
 private data class BottomItem(val icon: ImageVector, val label: String)
+
+/* ---------- Helpers para puntaje dinámico (mismo criterio que PuntajeScreen) ---------- */
+@Suppress("SimpleDateFormat")
+private val ISO = SimpleDateFormat("yyyy-MM-dd", Locale("es","ES"))
+private fun Date.toIso(): String = ISO.format(this)
+private fun daysAgo(d: Int): Date = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -d) }.time
+
+private fun moodFromLabel(label: String?): Mood? =
+    enumValues<Mood>().firstOrNull { it.label == label }
+
+private fun moodScore(m: Mood): Int = when (m) {
+    Mood.Feliz      -> 100
+    Mood.Tranquilo  -> 85
+    Mood.Sereno     -> 75
+    Mood.Neutral    -> 60
+    Mood.Enojado    -> 40
+    Mood.Triste     -> 35
+    Mood.Deprimido  -> 25
+}
+
+/* --------------------------------- UI --------------------------------- */
 
 @Composable
 fun InicioScreen(
     onNavChange: (Int) -> Unit = {},
-    // 🔹 NUEVO: callback para ir a la pantalla de Ánimo
-    onGoAnimo: () -> Unit = {}
+    // ya tenías este para ir a Ánimo
+    onGoAnimo: () -> Unit = {},
+    // 🔹 NEW: tocar la tarjeta Puntaje abre la pantalla de Puntaje
+    onGoPuntaje: () -> Unit = {}
 ) {
+    // 🔹 NEW: calcular el porcentaje real (últimos 30 días)
+    val context = LocalContext.current
+    val dao: MoodDao = remember { MoodDatabase.getInstance(context).moodDao() }
+    var overallScore by remember { mutableStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        val startIso = daysAgo(30).toIso()
+        val endIso = Date().toIso()
+        val entries: List<MoodEntry> = dao.entriesBetween(startIso, endIso)
+        val scores = entries.mapNotNull { e -> moodFromLabel(e.moodType)?.let { moodScore(it) } }
+        overallScore = if (scores.isEmpty()) 0 else scores.average().roundToInt()
+    }
+
     Scaffold(
         containerColor = Fondo,
         bottomBar = {
@@ -104,12 +151,13 @@ fun InicioScreen(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // 🔹 score ahora es dinámico y click navega a Puntaje
                 CardScore(
-                    score = 90,
-                    onClick = { /* TODO: ir a detalle de puntaje si quieres */ },
+                    score = overallScore,
+                    onClick = onGoPuntaje,
                     modifier = Modifier.weight(1f).height(156.dp)
                 )
-                // 🔹 AQUÍ el cambio: al tocar Ánimo navega al gráfico
+                // Ánimo mantiene tu navegación
                 CardMood(
                     mood = "Feliz",
                     values = listOf(2f, 5f, 3.5f, 6f, 4.5f, 7f),
@@ -214,7 +262,7 @@ private fun TipCardHorizontal(tip: Tip) {
         shape = RoundedCornerShape(18.dp),
         shadowElevation = 10.dp,
         modifier = Modifier
-            .width(300.dp)         // más larga para textos largos
+            .width(300.dp)
             .height(120.dp)
             .clickable { /* TODO */ }
     ) {
@@ -274,7 +322,7 @@ private fun WeeklyAdviceCard(
     onClick: () -> Unit
 ) {
     Surface(
-        color = TipBg, // blanco
+        color = TipBg,
         shape = RoundedCornerShape(18.dp),
         shadowElevation = 10.dp,
         modifier = Modifier
