@@ -36,6 +36,8 @@ import com.example.mente_libre_app.ui.screen.Bienvenida4Screen
 import com.example.mente_libre_app.ui.screen.BienvenidaScreen
 import com.example.mente_libre_app.ui.screen.CargandoScreen
 import com.example.mente_libre_app.ui.screen.CrearScreenVm
+import com.example.mente_libre_app.ui.screen.CrisisScreen
+import com.example.mente_libre_app.ui.screen.EstrategiasScreen
 import com.example.mente_libre_app.ui.screen.FotoScreen
 import com.example.mente_libre_app.ui.screen.FraseScreen
 import com.example.mente_libre_app.ui.screen.GeneroScreen
@@ -45,8 +47,10 @@ import com.example.mente_libre_app.ui.screen.InicioScreen
 import com.example.mente_libre_app.ui.screen.MascotaScreen
 import com.example.mente_libre_app.ui.screen.NombrarMascotaScreen
 import com.example.mente_libre_app.ui.screen.ObjetivoScreen
+import com.example.mente_libre_app.ui.screen.OrganizarseScreen
 import com.example.mente_libre_app.ui.screen.PerfilScreen
 import com.example.mente_libre_app.ui.screen.PortadaScreen
+import com.example.mente_libre_app.ui.screen.SaludScreen
 import com.example.mente_libre_app.ui.screen.SelectorScreen
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModel
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModelFactory
@@ -237,14 +241,15 @@ fun AppNavGraph(
                 composable(Route.Inicio.path) {
                     InicioScreen(
                         onNavChange = { index ->
-                            when (index) {
+                            when(index){
                                 0 -> navController.navigate(Route.Inicio.path)
                                 1 -> { /* Hábitos */ }
                                 2 -> navController.navigate(Route.Perfil.path)
                                 3 -> navController.navigate(Route.Ajustes.path)
                             }
                         },
-                        onGoAnimo = goAnimo // 🔹 aquí estaba el problema
+                        onGoAnimo = goAnimo,
+                        navController = navController // 🔹 pasamos navController
                     )
                 }
                 composable(Route.Animo.path) {
@@ -252,7 +257,18 @@ fun AppNavGraph(
                         onBack = { navController.popBackStack() }
                     )
                 }
-
+                composable(Route.Organizarse.path) {
+                    OrganizarseScreen(navController)
+                }
+                composable(Route.Estrategias.path) {
+                    EstrategiasScreen(navController)
+                }
+                composable(Route.Crisis.path) {
+                    CrisisScreen(navController)
+                }
+                composable(Route.Salud.path) {
+                    SaludScreen(navController)
+                }
                 composable(Route.Ajustes.path) {
                     AjustesScreen(
                         onItemSelected = { selectedItem ->

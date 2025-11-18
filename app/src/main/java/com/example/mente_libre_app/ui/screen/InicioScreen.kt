@@ -14,33 +14,32 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import com.example.mente_libre_app.navigation.Route
+import com.example.mente_libre_app.ui.components.BottomNavigationBar
 
 /* ============================================================
-   InicioScreen — Tips + Consejos Semanales (tarjetas blancas,
-   tip en formato horizontal para ver el título completo)
+   InicioScreen — Tips + Consejos Semanales
    ============================================================ */
 
 private val Fondo = Color(0xFFFFEDF5)
@@ -48,39 +47,39 @@ private val Texto = Color(0xFF842C46)
 private val Acento = Color(0xFFFF6D9B)
 private val CardRosa = Color(0xFFFFDCE3)
 private val CardVerde = Color(0xFF9DB25D)
-val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
-val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
 
+private val TipBg = Color.White
+private val TipOvalBg = Color(0xFFF6EEF1)
+private val TipTitle = Texto
 
-// Tarjetas de Tips / Consejos
-private val TipBg = Color.White            // ← ahora blanco
-private val TipOvalBg = Color(0xFFF6EEF1)  // fondo claro del óvalo
-private val TipTitle = Texto               // mismo color que títulos
+private val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
+private val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
 
-private data class BottomItem(val icon: ImageVector, val label: String)
+data class Tip(val titulo: String, val imagen: Int)
 
 @Composable
 fun InicioScreen(
     onNavChange: (Int) -> Unit = {},
-    // 🔹 NUEVO: callback para ir a la pantalla de Ánimo
-    onGoAnimo: () -> Unit = {}
+    onGoAnimo: () -> Unit = {},
+    navController: NavHostController // 🔹 agregamos navController
 ) {
     Scaffold(
         containerColor = Fondo,
         bottomBar = {
-            BottomBar(
-                items = listOf(
-                    BottomItem(Icons.Filled.Home, "Inicio"),
-                    BottomItem(Icons.Filled.FavoriteBorder, "Hábitos"),
-                    BottomItem(Icons.Filled.Person, "Perfil"),
-                    BottomItem(Icons.Filled.Settings, "Ajustes")
-                ),
-                selected = 0,
-                onSelected = onNavChange,
-                modifier = Modifier.navigationBarsPadding()
+            BottomNavigationBar(
+                selectedItem = "inicio",
+                onItemSelected = { route ->
+                    when(route){
+                        "inicio" -> onNavChange(0)
+                        "conexion" -> onNavChange(1)
+                        "texto" -> onNavChange(2)
+                        "ajustes" -> onNavChange(3)
+                    }
+                }
             )
         }
     ) { padding ->
+
         val scroll = rememberScrollState()
         Column(
             Modifier
@@ -100,7 +99,7 @@ fun InicioScreen(
                 text = "Métricas de salud",
                 color = Texto,
                 fontSize = 22.sp,
-                fontWeight = FontWeight.Bold
+                fontFamily = serifBold
             )
 
             Spacer(Modifier.height(12.dp))
@@ -111,10 +110,9 @@ fun InicioScreen(
             ) {
                 CardScore(
                     score = 90,
-                    onClick = { /* TODO: ir a detalle de puntaje si quieres */ },
+                    onClick = {},
                     modifier = Modifier.weight(1f).height(156.dp)
                 )
-                // 🔹 AQUÍ el cambio: al tocar Ánimo navega al gráfico
                 CardMood(
                     mood = "Feliz",
                     values = listOf(2f, 5f, 3.5f, 6f, 4.5f, 7f),
@@ -125,36 +123,35 @@ fun InicioScreen(
 
             Spacer(Modifier.height(26.dp))
 
-            // Tips
             Text(
                 text = "Tips",
                 color = Texto,
                 fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
+                fontFamily = serifBold,
                 modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
             )
             TipsSection(
                 tips = listOf(
                     Tip("Cómo Organizarse Mejor", R.drawable.organizarse),
                     Tip("¿Qué hacer en una crisis emocional?", R.drawable.crisis_emocional),
-                    Tip("Extrategias para el Autocuidado", R.drawable.autocuidado)
-                )
+                    Tip("Estrategias para el Autocuidado", R.drawable.autocuidado)
+                ),
+                navController = navController // 🔹 importante
             )
 
             Spacer(Modifier.height(22.dp))
 
-            // Consejos Semanales
             Text(
                 text = "Consejos Semanales",
                 color = Texto,
                 fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
+                fontFamily = serifBold,
                 modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
             )
             WeeklyAdviceCard(
                 titulo = "Salud Física",
                 imagen = R.drawable.salud_fisica,
-                onClick = { /* TODO */ }
+                onClick = {}
             )
 
             Spacer(Modifier.height(40.dp))
@@ -177,12 +174,12 @@ private fun AvatarPlaceholder(size: Dp) {
             Modifier
                 .size(size)
                 .clip(CircleShape)
-                .border(3.dp, Acento, CircleShape)
+                . border(3.dp, Acento, CircleShape)
                 .background(Color(0xFFFFF6FA)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = Icons.Filled.Person,
+                imageVector = Icons.Filled.FavoriteBorder,
                 contentDescription = "Foto de perfil",
                 tint = Texto.copy(0.35f),
                 modifier = Modifier.size(size * 0.45f)
@@ -191,12 +188,8 @@ private fun AvatarPlaceholder(size: Dp) {
     }
 }
 
-/* ====================== SECCIÓN: TIPS ====================== */
-
-data class Tip(val titulo: String, val imagen: Int)
-
 @Composable
-private fun TipsSection(tips: List<Tip>) {
+private fun TipsSection(tips: List<Tip>, navController: NavHostController) {
     val scroll = rememberScrollState()
     Row(
         Modifier
@@ -206,22 +199,27 @@ private fun TipsSection(tips: List<Tip>) {
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         tips.forEach { tip ->
-            TipCardHorizontal(tip)
+            val onClick: () -> Unit = when(tip.titulo) {
+                "Cómo Organizarse Mejor" -> { { navController.navigate(Route.Organizarse.path) } }
+                "¿Qué hacer en una crisis emocional?" -> { { navController.navigate(Route.Crisis.path) } }
+                "Estrategias para el Autocuidado" -> { { navController.navigate(Route.Estrategias.path) } }
+                else -> { {} } // 🔹 lambda vacía
+            }
+            TipCardHorizontal(tip, onClick)
         }
     }
 }
 
-/** Tarjeta horizontal: óvalo con imagen a la izquierda + título a la derecha (multilínea) */
 @Composable
-private fun TipCardHorizontal(tip: Tip) {
+private fun TipCardHorizontal(tip: Tip, onClick: () -> Unit) {
     Surface(
         color = TipBg,
         shape = RoundedCornerShape(18.dp),
         shadowElevation = 10.dp,
         modifier = Modifier
-            .width(300.dp)         // más larga para textos largos
+            .width(300.dp)
             .height(120.dp)
-            .clickable { /* TODO */ }
+            .clickable { onClick() } // 🔹 clic
     ) {
         Row(
             modifier = Modifier
@@ -229,7 +227,6 @@ private fun TipCardHorizontal(tip: Tip) {
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Óvalo con imagen
             Box(
                 modifier = Modifier
                     .width(128.dp)
@@ -255,13 +252,12 @@ private fun TipCardHorizontal(tip: Tip) {
 
             Spacer(Modifier.width(14.dp))
 
-            // Texto a la derecha (varias líneas)
             Text(
                 text = tip.titulo,
                 color = TipTitle,
                 fontSize = 16.sp,
+                fontFamily = serifRegular,
                 lineHeight = 18.sp,
-                fontWeight = FontWeight.SemiBold,
                 maxLines = 3,
                 overflow = TextOverflow.Clip,
                 modifier = Modifier.weight(1f)
@@ -270,16 +266,10 @@ private fun TipCardHorizontal(tip: Tip) {
     }
 }
 
-/* =============== SECCIÓN: CONSEJOS SEMANALES =============== */
-
 @Composable
-private fun WeeklyAdviceCard(
-    titulo: String,
-    imagen: Int,
-    onClick: () -> Unit
-) {
+private fun WeeklyAdviceCard(titulo: String, imagen: Int, onClick: () -> Unit) {
     Surface(
-        color = TipBg, // blanco
+        color = TipBg,
         shape = RoundedCornerShape(18.dp),
         shadowElevation = 10.dp,
         modifier = Modifier
@@ -321,7 +311,7 @@ private fun WeeklyAdviceCard(
                 text = titulo,
                 color = TipTitle,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontFamily = serifRegular,
                 textAlign = TextAlign.Center,
                 maxLines = 2
             )
@@ -329,7 +319,7 @@ private fun WeeklyAdviceCard(
     }
 }
 
-/* =================== Métricas existentes =================== */
+/* =================== Métricas =================== */
 
 @Composable
 private fun CardScore(score: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
@@ -347,14 +337,14 @@ private fun CardScore(score: Int, onClick: () -> Unit, modifier: Modifier = Modi
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Puntaje", color = Color.White, fontWeight = FontWeight.SemiBold)
+                Text("Puntaje", color = Color.White, fontFamily = serifBold)
                 Icon(Icons.Filled.FavoriteBorder, contentDescription = null, tint = Color.White)
             }
             Spacer(Modifier.height(2.dp))
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 CircularScore(value = score, stroke = 8f, color = Color.White, size = 72.dp)
             }
-            Text("Salud", color = Color.White, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+            Text("Salud", color = Color.White, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(), fontFamily = serifBold)
         }
     }
 }
@@ -376,10 +366,10 @@ private fun CardMood(mood: String, values: List<Float>, onClick: () -> Unit, mod
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text("Ánimo", color = Texto, fontWeight = FontWeight.SemiBold)
-                    Text(mood, color = Texto, fontSize = 14.sp)
+                    Text("Ánimo", color = Texto, fontFamily = serifBold)
+                    Text(mood, color = Texto, fontSize = 14.sp, fontFamily = serifRegular)
                 }
-                Text("ⓘ", color = Texto.copy(alpha = 0.7f))
+                Text("ⓘ", color = Texto.copy(alpha = 0.7f), fontFamily = serifBold)
             }
             MiniBarChart(values = values, barWidth = 9.dp, color = Texto.copy(alpha = 0.85f))
         }
@@ -402,7 +392,7 @@ private fun CircularScore(value: Int, stroke: Float, color: Color, size: Dp) {
                 style = Stroke(width = stroke, cap = StrokeCap.Round)
             )
         }
-        Text("$value", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Text("$value", color = Color.White, fontSize = 20.sp, fontFamily = serifBold)
     }
 }
 
@@ -426,47 +416,11 @@ private fun MiniBarChart(values: List<Float>, barWidth: Dp, color: Color) {
     }
 }
 
-/** 🔹 Barra inferior solo redondeada arriba **/
-@Composable
-private fun BottomBar(
-    items: List<BottomItem>,
-    selected: Int,
-    onSelected: (Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        color = Color.White.copy(alpha = 0.98f),
-        shadowElevation = 12.dp,
-        shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
-        modifier = modifier
-    ) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .height(64.dp)
-                .padding(horizontal = 12.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            items.forEachIndexed { i, item ->
-                val tint = if (i == selected) Acento else Texto.copy(0.55f)
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(18.dp))
-                        .clickable { onSelected(i) }
-                        .padding(vertical = 6.dp, horizontal = 10.dp)
-                ) {
-                    Icon(item.icon, contentDescription = item.label, tint = tint)
-                    Text(item.label, fontSize = 11.sp, color = tint)
-                }
-            }
-        }
-    }
-}
-
 @Preview(showBackground = true, backgroundColor = 0xFFF4F4F4)
 @Composable
 private fun PreviewInicioScreen() {
-    MaterialTheme { InicioScreen() }
+    val navController = rememberNavController()
+    MaterialTheme {
+        InicioScreen(navController = navController)
+    }
 }
