@@ -79,20 +79,32 @@ class AuthViewModel(
 
         viewModelScope.launch {
             _login.update { it.copy(isSubmitting = true, errorMsg = null, success = false) }
+
             val result = repository.login(s.email.trim(), s.pass)
-            _login.update {
-                if (result.isSuccess) {
+
+            result.fold(
+                onSuccess = { response ->
                     // Guardar sesión si login fue exitoso
                     UsuarioPreferences.guardarSesion(context, true)
-                    it.copy(isSubmitting = false, success = true, errorMsg = null)
-                } else {
-                    it.copy(
-                        isSubmitting = false,
-                        success = false,
-                        errorMsg = result.exceptionOrNull()?.message ?: "Error de login"
-                    )
+
+                    _login.update {
+                        it.copy(
+                            isSubmitting = false,
+                            success = true,
+                            errorMsg = null
+                        )
+                    }
+                },
+                onFailure = { e ->
+                    _login.update {
+                        it.copy(
+                            isSubmitting = false,
+                            success = false,
+                            errorMsg = e.message ?: "Error de login"
+                        )
+                    }
                 }
-            }
+            )
         }
     }
 

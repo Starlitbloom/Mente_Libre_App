@@ -1,38 +1,37 @@
 package com.example.mente_libre_app.data.repository
 
-import com.example.mente_libre_app.data.local.user.UserDao
-import com.example.mente_libre_app.data.local.user.UserEntity
+import android.content.Context
+import com.example.mente_libre_app.data.local.TokenManager
+import com.example.mente_libre_app.data.remote.RemoteModule
+import com.example.mente_libre_app.data.remote.api.AuthApi
+import com.example.mente_libre_app.data.remote.dto.LoginRequestDto
+import com.example.mente_libre_app.data.remote.dto.LoginResponseDto
 
-// Repositorio: maneja las operaciones de negocio para login y registro usando el DAO.
-class UserRepository(
-    private val userDao: UserDao
-) {
+class UserRepository(private val context: Context) {
 
-    // ---------------- LOGIN ----------------
-    suspend fun login(email: String, password: String): Result<UserEntity> {
-        val user = userDao.getByEmail(email)
-        return if (user != null && user.password == password) {
-            Result.success(user)
-        } else {
-            Result.failure(IllegalArgumentException("Credenciales inválidas"))
+    private val api = RemoteModule.create(AuthApi::class.java)
+
+    // -------- LOGIN (nuevo, con microservicio) -----------
+    suspend fun login(email: String, password: String): Result<LoginResponseDto> {
+        return try {
+            val response = api.login(LoginRequestDto(email, password))
+
+            // guardar token
+            TokenManager(context).saveToken(response.token)
+
+            Result.success(response)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
-    // ---------------- REGISTRO ----------------
-    suspend fun register(name: String, email: String, phone: String, password: String): Result<Long> {
-        val exists = userDao.getByEmail(email) != null
-        if (exists) {
-            return Result.failure(IllegalStateException("El correo ya está registrado"))
-        }
-
-        val id = userDao.insert(
-            UserEntity(
-                name = name,
-                email = email,
-                phone = phone,
-                password = password
-            )
-        )
-        return Result.success(id)
+    // -------- REGISTER (lo ajustaremos luego si tu backend lo soporta) ------
+    suspend fun register(
+        name: String,
+        email: String,
+        phone: String,
+        password: String
+    ): Result<Unit> {
+        return Result.failure(Exception("Registro aún no implementado en el backend"))
     }
 }

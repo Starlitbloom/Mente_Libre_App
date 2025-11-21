@@ -203,6 +203,7 @@ private fun TipsSection(tips: List<Tip>, navController: NavHostController) {
                 "Cómo Organizarse Mejor" -> { { navController.navigate(Route.Organizarse.path) } }
                 "¿Qué hacer en una crisis emocional?" -> { { navController.navigate(Route.Crisis.path) } }
                 "Estrategias para el Autocuidado" -> { { navController.navigate(Route.Estrategias.path) } }
+                "Salud Fisica" -> { { navController.navigate(Route.Salud.path) } }
                 else -> { {} } // 🔹 lambda vacía
             }
             TipCardHorizontal(tip, onClick)

@@ -93,9 +93,7 @@ fun AppNavGraph(
 
     // Inicialización de DB, DAO y repositorio
     val context = LocalContext.current
-    val dao = AppDatabase.getInstance(context).userDao()
-    val repository = UserRepository(dao)
-    val factory = AuthViewModelFactory(repository, context)
+    val factory = AuthViewModelFactory(context)
     val authViewModel: AuthViewModel = viewModel(factory = factory)
 
 
