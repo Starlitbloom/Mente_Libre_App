@@ -2,21 +2,20 @@ package com.example.mente_libre_app.data.repository
 
 import android.content.Context
 import com.example.mente_libre_app.data.local.TokenManager
-import com.example.mente_libre_app.data.remote.RemoteModule
 import com.example.mente_libre_app.data.remote.api.AuthApi
+import com.example.mente_libre_app.data.remote.core.RetrofitInstance
 import com.example.mente_libre_app.data.remote.dto.LoginRequestDto
 import com.example.mente_libre_app.data.remote.dto.LoginResponseDto
+import com.example.mente_libre_app.data.remote.dto.RegisterRequestDto
 
 class UserRepository(private val context: Context) {
 
-    private val api = RemoteModule.create(AuthApi::class.java)
+    private val api = RetrofitInstance.getAuthService(context)
 
-    // -------- LOGIN (nuevo, con microservicio) -----------
     suspend fun login(email: String, password: String): Result<LoginResponseDto> {
         return try {
             val response = api.login(LoginRequestDto(email, password))
 
-            // guardar token
             TokenManager(context).saveToken(response.token)
 
             Result.success(response)
@@ -25,13 +24,13 @@ class UserRepository(private val context: Context) {
         }
     }
 
-    // -------- REGISTER (lo ajustaremos luego si tu backend lo soporta) ------
-    suspend fun register(
-        name: String,
-        email: String,
-        phone: String,
-        password: String
-    ): Result<Unit> {
-        return Result.failure(Exception("Registro aún no implementado en el backend"))
+    suspend fun register(request: RegisterRequestDto): Result<Unit> {
+        return try {
+            api.register(request)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }
+

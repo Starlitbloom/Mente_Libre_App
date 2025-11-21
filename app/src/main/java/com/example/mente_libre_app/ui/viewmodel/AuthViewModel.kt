@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mente_libre_app.data.local.storage.UsuarioPreferences
+import com.example.mente_libre_app.data.remote.dto.RegisterRequestDto
 import com.example.mente_libre_app.data.repository.UserRepository
 import com.example.mente_libre_app.domain.validation.*
 import kotlinx.coroutines.flow.Flow
@@ -161,11 +162,14 @@ class AuthViewModel(
             _register.update { it.copy(isSubmitting = true, errorMsg = null, success = false) }
 
             val result = repository.register(
-                name = s.name.trim(),
-                email = s.email.trim(),
-                phone = s.phone.trim(),
-                password = s.pass
+                RegisterRequestDto(
+                    username = s.name.trim(),
+                    email = s.email.trim(),
+                    phone = s.phone.trim(),
+                    password = s.pass
+                )
             )
+
 
             result.fold(
                 onSuccess = {
