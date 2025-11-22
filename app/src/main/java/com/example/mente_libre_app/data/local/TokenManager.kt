@@ -3,17 +3,22 @@ package com.example.mente_libre_app.data.local
 import android.content.Context
 import android.content.SharedPreferences
 
-class TokenManager(context: Context) {
+class TokenManager(private val context: Context) {
 
-    private val prefs: SharedPreferences =
-        context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+    private val prefs = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
 
-    fun saveToken(token: String) {
-        prefs.edit().putString("jwt_token", token).apply()
+    fun saveToken(token: String, userId: Long? = null) {
+        prefs.edit().apply {
+            putString("token", token)
+            userId?.let { putLong("user_id", it) }
+            apply()
+        }
     }
 
-    fun getToken(): String? {
-        return prefs.getString("jwt_token", null)
+    fun getToken(): String? = prefs.getString("token", null)
+
+    fun getUserId(): Long? {
+        return if (prefs.contains("user_id")) prefs.getLong("user_id", -1) else null
     }
 
     fun clear() {

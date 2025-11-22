@@ -11,13 +11,13 @@ import com.example.mente_libre_app.data.remote.dto.RegisterRequestDto
 class UserRepository(private val context: Context) {
 
     private val api = RetrofitInstance.getAuthService(context)
+    private val tokenManager = TokenManager(context)
 
     suspend fun login(email: String, password: String): Result<LoginResponseDto> {
         return try {
             val response = api.login(LoginRequestDto(email, password))
-
-            TokenManager(context).saveToken(response.token)
-
+            // Guardamos token + userId
+            tokenManager.saveToken(response.token, response.userId)
             Result.success(response)
         } catch (e: Exception) {
             Result.failure(e)
@@ -32,5 +32,12 @@ class UserRepository(private val context: Context) {
             Result.failure(e)
         }
     }
-}
 
+    suspend fun getCurrentUserId(): Long? {
+        return tokenManager.getUserId()
+    }
+
+    fun logout() {
+        tokenManager.clear()
+    }
+}

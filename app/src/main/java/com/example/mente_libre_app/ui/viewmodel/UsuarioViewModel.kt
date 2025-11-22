@@ -1,89 +1,116 @@
 package com.example.mente_libre_app.ui.viewmodel
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mente_libre_app.data.local.storage.UsuarioPreferences
-import kotlinx.coroutines.flow.Flow
+import com.example.mente_libre_app.data.remote.dto.CreateUserProfileRequestDto
+import com.example.mente_libre_app.data.repository.UserProfileRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class UsuarioViewModel : ViewModel() {
+class UsuarioViewModel(
+    private val repository: UserProfileRepository
+) : ViewModel() {
 
-    // Guardar el género en DataStore
-    fun guardarGenero(context: Context, genero: String) {
+    // --- Campos del perfil ---
+    private val _nombre = MutableStateFlow("")
+    val nombre: StateFlow<String> = _nombre
+
+    private val _email = MutableStateFlow("")
+    val email: StateFlow<String> = _email
+
+    private val _telefono = MutableStateFlow("")
+    val telefono: StateFlow<String> = _telefono
+
+    private val _direccion = MutableStateFlow("")
+    val direccion: StateFlow<String> = _direccion
+
+    private val _cumpleanos = MutableStateFlow("")
+    val cumpleanos: StateFlow<String> = _cumpleanos
+
+    private val _generoId = MutableStateFlow(0L)
+    val generoId: StateFlow<Long> = _generoId
+
+    private val _generoNombre = MutableStateFlow("No especificado")
+    val generoNombre: StateFlow<String> = _generoNombre
+
+    private val _ubicacion = MutableStateFlow<Pair<Double, Double>?>(null)
+    val ubicacion: StateFlow<Pair<Double, Double>?> = _ubicacion
+
+    private val _fotoPerfil = MutableStateFlow<String?>(null)
+    val fotoPerfil: StateFlow<String?> = _fotoPerfil
+
+    private val _errorMsg = MutableStateFlow<String?>(null)
+    val errorMsg: StateFlow<String?> = _errorMsg
+
+    // --- Funciones para actualizar campos locales ---
+    fun setFotoPerfil(uri: String?) { _fotoPerfil.value = uri }
+    fun setCumpleanos(valor: String) { _cumpleanos.value = valor }
+    fun setGeneroId(id: Long, nombre: String) {
+        _generoId.value = id
+        _generoNombre.value = nombre
+    }
+    fun setDireccion(valor: String) { _direccion.value = valor }
+    fun setUbicacion(lat: Double, lon: Double) { _ubicacion.value = Pair(lat, lon) }
+    fun setUsername(valor: String) { _nombre.value = valor }
+    fun setEmail(valor: String) { _email.value = valor }
+    fun setPhone(valor: String) { _telefono.value = valor }
+
+    // --- Cargar perfil desde backend ---
+    fun cargarPerfil(userId: Long) {
         viewModelScope.launch {
-            UsuarioPreferences.guardarGenero(context, genero)
+            val result = repository.getFullUserProfile(userId)
+            result.fold(
+                onSuccess = { perfil ->
+                    _nombre.value = perfil.username
+                    _email.value = perfil.email
+                    _telefono.value = perfil.phone
+                    _direccion.value = perfil.direccion
+                    _cumpleanos.value = perfil.fechaNacimiento
+                    _generoId.value = perfil.generoId
+                    _generoNombre.value = perfil.generoNombre
+                    _fotoPerfil.value = perfil.fotoPerfil
+                    _errorMsg.value = null
+                },
+                onFailure = { e ->
+                    _errorMsg.value = e.message ?: "Error al cargar perfil"
+                }
+            )
         }
     }
 
-    // Obtener el género guardado como Flow
-    fun obtenerGenero(context: Context): Flow<String?> {
-        return UsuarioPreferences.obtenerGenero(context)
-    }
-
-    fun guardarObjetivo(context: Context, objetivo: String) {
+    // --- Crear o actualizar perfil ---
+    fun actualizarPerfil(
+        userId: Long,
+        direccion: String,
+        fechaNacimiento: String,
+        generoId: Long,
+        fotoPerfil: String?, // opcional
+        onResult: (Boolean) -> Unit
+    ) {
         viewModelScope.launch {
-            UsuarioPreferences.guardarObjetivo(context, objetivo)
+            val request = CreateUserProfileRequestDto(
+                userId = userId,
+                direccion = direccion,
+                fechaNacimiento = fechaNacimiento,
+                notificaciones = false,
+                generoId = generoId,
+                fotoPerfil = fotoPerfil
+            )
+            val result = repository.createProfile(request)
+            result.fold(
+                onSuccess = { onResult(true) },
+                onFailure = { e ->
+                    _errorMsg.value = e.message ?: "Error al actualizar perfil"
+                    onResult(false)
+                }
+            )
         }
     }
 
-    fun obtenerObjetivo(context: Context): Flow<String?> {
-        return UsuarioPreferences.obtenerObjetivo(context)
-    }
+    // --- Campo temporal para objetivo ---
+    private val _objetivoSeleccionado = MutableStateFlow<String?>(null)
+    val objetivoSeleccionado: StateFlow<String?> = _objetivoSeleccionado
 
-    fun guardarFoto(context: Context, uri: String) {
-        viewModelScope.launch {
-            UsuarioPreferences.guardarFoto(context, uri)
-        }
-    }
-    fun fotoUsuarioFlow(context: Context): Flow<String?> {
-        return UsuarioPreferences.obtenerFoto(context)
-    }
-
-    fun obtenerFoto(context: Context): Flow<String?> {
-        return UsuarioPreferences.obtenerFoto(context)
-    }
-
-    fun guardarNombre(context: Context, nombre: String) {
-        viewModelScope.launch {
-            UsuarioPreferences.guardarNombre(context, nombre)
-        }
-    }
-
-    fun obtenerNombre(context: Context): Flow<String?> {
-        return UsuarioPreferences.obtenerNombre(context)
-    }
-
-    fun guardarEmail(context: Context, email: String) {
-        viewModelScope.launch { UsuarioPreferences.guardarEmail(context, email) }
-    }
-
-    fun obtenerEmail(context: Context): Flow<String?> = UsuarioPreferences.obtenerEmail(context)
-
-    fun guardarTelefono(context: Context, telefono: String) {
-        viewModelScope.launch { UsuarioPreferences.guardarTelefono(context, telefono) }
-    }
-
-    fun obtenerTelefono(context: Context): Flow<String?> = UsuarioPreferences.obtenerTelefono(context)
-
-    fun guardarCumpleanos(context: Context, fecha: String) {
-        viewModelScope.launch {
-            UsuarioPreferences.guardarCumpleanos(context, fecha)
-        }
-    }
-
-    fun obtenerCumpleanos(context: Context): Flow<String?> {
-        return UsuarioPreferences.obtenerCumpleanos(context)
-    }
-
-    fun guardarUbicacion(context: Context, latitud: Double, longitud: Double) {
-        viewModelScope.launch {
-            UsuarioPreferences.guardarUbicacion(context, latitud, longitud)
-        }
-    }
-
-    fun obtenerUbicacion(context: Context): Flow<Pair<Double?, Double?>> {
-        return UsuarioPreferences.obtenerUbicacion(context)
-    }
-
+    fun setObjetivo(objetivo: String) { _objetivoSeleccionado.value = objetivo }
 }

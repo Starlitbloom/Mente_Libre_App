@@ -7,16 +7,20 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.fragment.app.FragmentActivity
@@ -55,6 +59,7 @@ import com.example.mente_libre_app.ui.screen.SelectorScreen
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModel
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModelFactory
 import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModel
+import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModelFactory
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
@@ -95,6 +100,7 @@ fun AppNavGraph(
     val context = LocalContext.current
     val factory = AuthViewModelFactory(context)
     val authViewModel: AuthViewModel = viewModel(factory = factory)
+
 
 
     ModalNavigationDrawer(
@@ -177,20 +183,22 @@ fun AppNavGraph(
                     arguments = listOf(
                         navArgument("isEditingProfile") {
                             type = NavType.BoolType
-                            defaultValue = false  // valor por defecto si no se pasa
+                            defaultValue = false
                         }
                     )
                 ) { backStackEntry ->
-                    val usuarioViewModel: UsuarioViewModel = viewModel()
+                    val usuarioViewModel: UsuarioViewModel = viewModel(
+                        factory = UsuarioViewModelFactory(LocalContext.current)
+                    )
                     val isEditing = backStackEntry.arguments?.getBoolean("isEditingProfile") ?: false
                     FotoScreen(
                         usuarioViewModel = usuarioViewModel,
                         isEditingProfile = isEditing,
                         onNext = {
                             if (isEditing) {
-                                navController.popBackStack() // 🔙 vuelve al perfil
+                                navController.popBackStack()
                             } else {
-                                navController.navigate(Route.Huella.path) // ➡️ avanza al siguiente paso
+                                navController.navigate(Route.Huella.path)
                             }
                         }
                     )
@@ -287,16 +295,32 @@ fun AppNavGraph(
                     )
                 }
                 composable(Route.Perfil.path) {
-                    val usuarioViewModel: UsuarioViewModel = viewModel()
-                    PerfilScreen(
-                        usuarioViewModel = usuarioViewModel,
-                        authViewModel = authViewModel,
-                        onBackClick = { navController.popBackStack() },
-                        onEditarFotoClick = {
-                            navController.navigate("FotoScreen?isEditingProfile=true")
+                    val currentUserId by authViewModel.currentUserId.collectAsState()
+
+                    if (currentUserId != null) {
+                        val usuarioViewModel: UsuarioViewModel = viewModel(
+                            factory = UsuarioViewModelFactory(LocalContext.current)
+                        )
+                        // Llamamos cargarPerfil solo si todavía no se ha cargado
+                        LaunchedEffect(currentUserId) {
+                            usuarioViewModel.cargarPerfil(currentUserId!!)
                         }
-                    )
+
+                        PerfilScreen(
+                            usuarioViewModel = usuarioViewModel,
+                            authViewModel = authViewModel,
+                            userId = currentUserId!!,
+                            onBackClick = { navController.popBackStack() },
+                            onEditarFotoClick = { navController.navigate("FotoScreen?isEditingProfile=true") }
+                        )
+                    } else {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("Cargando perfil...")
+                        }
+                    }
                 }
+
+
             }
         }
     }
