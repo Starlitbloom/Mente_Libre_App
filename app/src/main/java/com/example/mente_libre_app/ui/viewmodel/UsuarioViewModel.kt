@@ -71,9 +71,26 @@ class UsuarioViewModel(
                     _generoNombre.value = perfil.generoNombre
                     _fotoPerfil.value = perfil.fotoPerfil
                     _errorMsg.value = null
+                    // Agregar log para depuración
+                    println("Perfil cargado: nombre=${perfil.username}, email=${perfil.email}, foto=${perfil.fotoPerfil}")
                 },
                 onFailure = { e ->
                     _errorMsg.value = e.message ?: "Error al cargar perfil"
+                    // Agregar log para depuración
+                    println("Error al cargar perfil: ${e.message}")
+                    // Intentar cargar solo auth si falla todo
+                    val authResult = repository.getAuthUser(userId)
+                    authResult.fold(
+                        onSuccess = { auth ->
+                            _nombre.value = auth.username
+                            _email.value = auth.email
+                            _telefono.value = auth.phone
+                            println("Cargado solo auth: nombre=${auth.username}")
+                        },
+                        onFailure = { e2 ->
+                            println("Error al cargar auth: ${e2.message}")
+                        }
+                    )
                 }
             )
         }

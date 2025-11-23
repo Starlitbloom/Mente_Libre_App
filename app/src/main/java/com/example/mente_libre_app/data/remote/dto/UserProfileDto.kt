@@ -10,4 +10,3 @@ data class UserProfileDto(
     val generoNombre: String,
     val fotoPerfil: String? = null
 )
-

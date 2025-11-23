@@ -13,6 +13,8 @@ foundation = "1.9.3"
 foundationVersion = "1.9.4"
 animationVersion = "1.9.4"
 compiler = "3.2.0-alpha11"
+coreKtxVersion = "1.7.0"
+firebaseFirestoreKtx = "26.0.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -34,6 +36,8 @@ androidx-compose-foundation = { group = "androidx.compose.foundation", name = "f
 androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundationVersion" }
 androidx-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animationVersion" }
 androidx-compiler = { group = "androidx.databinding", name = "compiler", version.ref = "compiler" }
+core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "coreKtxVersion" }
+firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
