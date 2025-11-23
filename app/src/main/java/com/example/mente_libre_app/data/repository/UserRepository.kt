@@ -1,38 +1,43 @@
 package com.example.mente_libre_app.data.repository
 
-import com.example.mente_libre_app.data.local.user.UserDao
-import com.example.mente_libre_app.data.local.user.UserEntity
+import android.content.Context
+import com.example.mente_libre_app.data.local.TokenManager
+import com.example.mente_libre_app.data.remote.api.AuthApi
+import com.example.mente_libre_app.data.remote.core.RetrofitInstance
+import com.example.mente_libre_app.data.remote.dto.LoginRequestDto
+import com.example.mente_libre_app.data.remote.dto.LoginResponseDto
+import com.example.mente_libre_app.data.remote.dto.RegisterRequestDto
 
-// Repositorio: maneja las operaciones de negocio para login y registro usando el DAO.
-class UserRepository(
-    private val userDao: UserDao
-) {
+class UserRepository(private val context: Context) {
 
-    // ---------------- LOGIN ----------------
-    suspend fun login(email: String, password: String): Result<UserEntity> {
-        val user = userDao.getByEmail(email)
-        return if (user != null && user.password == password) {
-            Result.success(user)
-        } else {
-            Result.failure(IllegalArgumentException("Credenciales inválidas"))
+    private val api = RetrofitInstance.getAuthService(context)
+    private val tokenManager = TokenManager(context)
+
+    suspend fun login(email: String, password: String): Result<LoginResponseDto> {
+        return try {
+            val response = api.login(LoginRequestDto(email, password))
+            // Guardamos token + userId
+            tokenManager.saveToken(response.token, response.userId)
+            Result.success(response)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
-    // ---------------- REGISTRO ----------------
-    suspend fun register(name: String, email: String, phone: String, password: String): Result<Long> {
-        val exists = userDao.getByEmail(email) != null
-        if (exists) {
-            return Result.failure(IllegalStateException("El correo ya está registrado"))
+    suspend fun register(request: RegisterRequestDto): Result<Unit> {
+        return try {
+            api.register(request)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
+    }
 
-        val id = userDao.insert(
-            UserEntity(
-                name = name,
-                email = email,
-                phone = phone,
-                password = password
-            )
-        )
-        return Result.success(id)
+    suspend fun getCurrentUserId(): Long? {
+        return tokenManager.getUserId()
+    }
+
+    fun logout() {
+        tokenManager.clear()
     }
 }

@@ -37,8 +37,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mente_libre_app.R
 import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModel
+import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModelFactory
 
 @Composable
 fun GeneroScreen(onNext: () -> Unit) {
@@ -46,7 +48,9 @@ fun GeneroScreen(onNext: () -> Unit) {
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val usuarioViewModel: UsuarioViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val usuarioViewModel: UsuarioViewModel = viewModel(
+        factory = UsuarioViewModelFactory(LocalContext.current)
+    )
     val contexto = LocalContext.current
 
     var generoSeleccionado by remember { mutableStateOf<String?>(null) }
@@ -114,9 +118,16 @@ fun GeneroScreen(onNext: () -> Unit) {
 
             Button(
                 onClick = {
-                    if (generoSeleccionado != null) {
-                        usuarioViewModel.guardarGenero(contexto, generoSeleccionado!!)
-                        onNext()
+                    generoSeleccionado?.let { genero ->
+                        // Actualizamos solo el género en el perfil temporal
+                        val generoId = when(genero) {
+                            "Mujer" -> 1L
+                            "Hombre" -> 2L
+                            "Prefiero no decirlo" -> 3L
+                            else -> 0L
+                        }
+                        usuarioViewModel.setGeneroId(generoId, genero)
+                        onNext() // pasa a la siguiente pantalla
                     }
                 },
                 enabled = generoSeleccionado != null,

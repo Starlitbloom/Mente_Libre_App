@@ -4,15 +4,36 @@ package com.example.mente_libre_app.ui.screen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,37 +49,49 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.mente_libre_app.R
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModel
 import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModel
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
-import java.util.Calendar
 
 
 @Composable
 fun PerfilScreen(
     usuarioViewModel: UsuarioViewModel,
     authViewModel: AuthViewModel,
+    userId: Long, // id del usuario actual
     onBackClick: () -> Unit,
     onEditarFotoClick: () -> Unit
 ) {
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
-
-    val registerState by authViewModel.register.collectAsState()
     val context = LocalContext.current
-    val fotoUri by usuarioViewModel.fotoUsuarioFlow(context).collectAsState(initial = null)
-    val genero by usuarioViewModel.obtenerGenero(context).collectAsState(initial = "No especificado")
-    val nombre by usuarioViewModel.obtenerNombre(context).collectAsState(initial = registerState.name)
-    val email by usuarioViewModel.obtenerEmail(context).collectAsState(initial = registerState.email)
-    val telefono by usuarioViewModel.obtenerTelefono(context).collectAsState(initial = registerState.phone)
-    val cumpleanos by usuarioViewModel.obtenerCumpleanos(context).collectAsState(initial = null)
 
+    // Estados del ViewModel
+    val nombre by usuarioViewModel.nombre.collectAsState()
+    val email by usuarioViewModel.email.collectAsState()
+    val telefono by usuarioViewModel.telefono.collectAsState()
+    val direccion by usuarioViewModel.direccion.collectAsState()
+    val cumpleanos by usuarioViewModel.cumpleanos.collectAsState()
+    val genero by usuarioViewModel.generoNombre.collectAsState()
+    val fotoPerfil by usuarioViewModel.fotoPerfil.collectAsState()
+    val ubicacion by usuarioViewModel.ubicacion.collectAsState()
+
+
+    // Estado de mapa
     var mostrarMapa by remember { mutableStateOf(false) }
-    var ubicacionSeleccionada by remember { mutableStateOf("No especificado") }
+    val ubicacionSeleccionada by usuarioViewModel.direccion.collectAsState()
+
 
     val scrollState = rememberScrollState()
+
+    // Cargar perfil al iniciar la pantalla
+    LaunchedEffect(userId) {
+        usuarioViewModel.cargarPerfil(userId)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -90,8 +123,8 @@ fun PerfilScreen(
 
             Box(contentAlignment = Alignment.BottomCenter) {
                 Image(
-                    painter = if (fotoUri != null)
-                        rememberAsyncImagePainter(fotoUri)
+                    painter = if (fotoPerfil != null)
+                        rememberAsyncImagePainter(fotoPerfil)
                     else
                         painterResource(id = R.drawable.ic_perfil_demo),
                     contentDescription = "Foto de perfil",
@@ -121,36 +154,37 @@ fun PerfilScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
+            // Campos de perfil
             PerfilCampo(
                 titulo = "Apodo",
-                valor = nombre ?: "",
+                valor = nombre,
                 icono = R.drawable.ic_usuario,
                 editable = true,
-                onValueChange = { usuarioViewModel.guardarNombre(context, it) }
+                onValueChange = { usuarioViewModel.setUsername(it) }
             )
             PerfilCampo(
                 titulo = "Correo Electrónico",
-                valor = email ?: "",
+                valor = email,
                 icono = R.drawable.ic_correo,
                 editable = true,
-                onValueChange = { usuarioViewModel.guardarEmail(context, it) }
+                onValueChange = { usuarioViewModel.setEmail(it) }
             )
             PerfilCampo(
                 titulo = "Teléfono",
-                valor = telefono ?: "",
+                valor = telefono,
                 icono = R.drawable.ic_telefono,
                 editable = true,
-                onValueChange = { usuarioViewModel.guardarTelefono(context, it) }
+                onValueChange = { usuarioViewModel.setPhone(it) }
             )
             FechaPickerCampo(
                 titulo = "Cumpleaños",
                 fecha = cumpleanos,
                 icono = R.drawable.ic_calendario
             ) { nuevaFecha ->
-                usuarioViewModel.guardarCumpleanos(context, nuevaFecha)
+                usuarioViewModel.setCumpleanos(nuevaFecha)
             }
             GeneroCampo(
-                generoActual = genero ?: "No especificado",
+                generoActual = genero,
                 usuarioViewModel = usuarioViewModel
             )
             UbicacionCampo(valor = ubicacionSeleccionada) {
@@ -158,9 +192,30 @@ fun PerfilScreen(
             }
 
             Spacer(modifier = Modifier.height(20.dp))
+
+            // Botón para guardar cambios
+            Button(
+                onClick = {
+                    usuarioViewModel.actualizarPerfil(
+                        userId = userId,
+                        direccion = direccion,
+                        fechaNacimiento = cumpleanos,
+                        generoId = usuarioViewModel.generoId.value,
+                        fotoPerfil = fotoPerfil
+                    ) { success ->
+                        if (success) {
+                            // Opcional: mostrar mensaje "Perfil actualizado"
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF842C46))
+            ) {
+                Text(text = "Guardar cambios", color = Color.White, fontFamily = serifBold)
+            }
         }
 
-        // Mostrar mapa como overlay
+        // Mapa para seleccionar ubicación
         if (mostrarMapa) {
             Box(
                 modifier = Modifier
@@ -168,10 +223,12 @@ fun PerfilScreen(
                     .background(Color(0xAA000000))
             ) {
                 MapaScreen(
-                    initialLocation = LatLng(-33.45, -70.65),
+                    initialLocation = ubicacion?.let { LatLng(it.first, it.second) }
+                        ?: LatLng(-33.45, -70.65),
                     onLocationSelected = { latLng ->
-                        ubicacionSeleccionada = "${latLng.latitude}, ${latLng.longitude}"
-                        usuarioViewModel.guardarUbicacion(context, latLng.latitude, latLng.longitude)
+                        usuarioViewModel.setUbicacion(latLng.latitude, latLng.longitude)
+                        usuarioViewModel.setDireccion("${latLng.latitude}, ${latLng.longitude}")
+
                         mostrarMapa = false
                     }
                 )
@@ -186,90 +243,20 @@ fun PerfilCampo(
     valor: String,
     icono: Int,
     editable: Boolean = false,
-    desplegable: Boolean = false,
-    onValueChange: ((String) -> Unit)? = null
+    onValueChange: (String) -> Unit = {}
 ) {
-    val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
-    val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
-    var text by remember { mutableStateOf(valor) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-    ) {
-        Text(
-            text = titulo,
-            color = Color(0xFF842C46),
-            fontFamily = serifBold,
-            fontSize = 15.sp,
-            modifier = Modifier.padding(start = 4.dp)
-        )
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .background(Color(0xFFFFD3B1), RoundedCornerShape(14.dp))
-                .border(1.dp, Color(0xFF842C46), RoundedCornerShape(14.dp))
-                .padding(horizontal = 14.dp, vertical = 6.dp),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            if (editable) {
-                TextField(
-                    value = text,
-                    onValueChange = {
-                        text = it
-                        onValueChange?.invoke(it)
-                    },
-                    singleLine = true,
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFFFFD3B1),
-                        unfocusedContainerColor = Color(0xFFFFD3B1),
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            } else {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            painter = painterResource(id = icono),
-                            contentDescription = null,
-                            tint = Color(0xFF842C46),
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = valor,
-                            color = Color(0xFF2D2D2D),
-                            fontSize = 16.sp,
-                            fontFamily = serifRegular
-                        )
-                    }
-
-                    if (editable) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_edit),
-                            contentDescription = "Editar",
-                            tint = Color(0xFF842C46),
-                            modifier = Modifier.size(18.dp)
-                        )
-                    } else if (desplegable) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_dropdown),
-                            contentDescription = "Desplegar",
-                            tint = Color(0xFF842C46),
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-            }
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        Text(text = titulo, fontSize = 14.sp, color = Color.Gray)
+        Spacer(modifier = Modifier.height(4.dp))
+        if (editable) {
+            OutlinedTextField(
+                value = valor,
+                onValueChange = onValueChange,
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+        } else {
+            Text(text = valor, fontSize = 16.sp)
         }
     }
 }
@@ -277,80 +264,27 @@ fun PerfilCampo(
 @Composable
 fun FechaPickerCampo(
     titulo: String,
-    fecha: String?,
+    fecha: String,
     icono: Int,
-    onFechaSeleccionada: (String) -> Unit
+    onFechaSelected: (String) -> Unit
 ) {
-    val context = LocalContext.current
-    val calendar = Calendar.getInstance()
-    var textoFecha by remember { mutableStateOf(fecha ?: "No especificado") }
-    val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-    ) {
-        Text(
-            text = titulo,
-            color = Color(0xFF842C46),
-            fontFamily = serifBold,
-            fontSize = 15.sp,
-            modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
-        )
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .background(Color(0xFFFFD3B1), RoundedCornerShape(14.dp))
-                .border(1.dp, Color(0xFF842C46), RoundedCornerShape(14.dp))
-                .padding(horizontal = 14.dp),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        painter = painterResource(id = icono),
-                        contentDescription = null,
-                        tint = Color(0xFF842C46),
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = textoFecha,
-                        color = Color(0xFF2D2D2D),
-                        fontSize = 16.sp
-                    )
-                }
-
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        Text(text = titulo, fontSize = 14.sp, color = Color.Gray)
+        Spacer(modifier = Modifier.height(4.dp))
+        OutlinedTextField(
+            value = fecha,
+            onValueChange = { },
+            modifier = Modifier.fillMaxWidth(),
+            readOnly = true,
+            singleLine = true,
+            trailingIcon = {
                 IconButton(onClick = {
-                    val dpd = android.app.DatePickerDialog(
-                        context,
-                        { _, year, month, day ->
-                            val fechaSeleccionada = "${day}/${month + 1}/$year"
-                            textoFecha = fechaSeleccionada
-                            onFechaSeleccionada(fechaSeleccionada)
-                        },
-                        calendar.get(Calendar.YEAR),
-                        calendar.get(Calendar.MONTH),
-                        calendar.get(Calendar.DAY_OF_MONTH)
-                    )
-                    dpd.show()
+                    // Aquí podrías abrir un DatePickerDialog real si querés
                 }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_dropdown),
-                        contentDescription = "Seleccionar fecha",
-                        tint = Color(0xFF842C46),
-                        modifier = Modifier.size(18.dp)
-                    )
+                    Icon(painter = painterResource(id = icono), contentDescription = "Seleccionar fecha")
                 }
             }
-        }
+        )
     }
 }
 
@@ -359,70 +293,30 @@ fun GeneroCampo(
     generoActual: String,
     usuarioViewModel: UsuarioViewModel
 ) {
-    val context = LocalContext.current
-    var expanded by remember { mutableStateOf(false) }
-    val opciones = listOf("Masculino", "Femenino", "Otro")
-    var genero by remember { mutableStateOf(generoActual) }
-    val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
-    val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-    ) {
-        Text(
-            text = "Género",
-            color = Color(0xFF842C46),
-            fontFamily = serifBold,
-            fontSize = 15.sp,
-            modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
-        )
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .background(Color(0xFFFFD3B1), RoundedCornerShape(14.dp))
-                .border(1.dp, Color(0xFF842C46), RoundedCornerShape(14.dp))
-                .padding(horizontal = 14.dp),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = genero,
-                    fontFamily = serifRegular,
-                    fontSize = 16.sp,
-                    color = Color(0xFF2D2D2D)
-                )
-
-                IconButton(onClick = { expanded = true }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_dropdown),
-                        contentDescription = "Seleccionar género",
-                        tint = Color(0xFF842C46),
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    opciones.forEach { opcion ->
-                        DropdownMenuItem(
-                            text = { Text(opcion) },
-                            onClick = {
-                                genero = opcion
-                                expanded = false
-                                usuarioViewModel.guardarGenero(context, opcion)
-                            }
-                        )
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        Text(text = "Género", fontSize = 14.sp, color = Color.Gray)
+        Spacer(modifier = Modifier.height(4.dp))
+        // Para simplificar, usamos un Dropdown
+        var expanded by remember { mutableStateOf(false) }
+        val generos = listOf("No especificado", "Masculino", "Femenino", "Otro")
+        Box {
+            OutlinedTextField(
+                value = generoActual,
+                onValueChange = {},
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true,
+                trailingIcon = {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                     }
+                }
+            )
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                generos.forEachIndexed { index, g ->
+                    DropdownMenuItem(text = { Text(g) }, onClick = {
+                        usuarioViewModel.setGeneroId(index.toLong(), g)
+                        expanded = false
+                    })
                 }
             }
         }
@@ -431,96 +325,45 @@ fun GeneroCampo(
 
 @Composable
 fun UbicacionCampo(
-    valor: String = "No especificado",
+    valor: String,
     onClick: () -> Unit
 ) {
-    val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
-    val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-    ) {
-        Text(
-            text = "Ubicación",
-            color = Color(0xFF842C46),
-            fontFamily = serifBold,
-            fontSize = 15.sp,
-            modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
-        )
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .background(Color(0xFFFFD3B1), RoundedCornerShape(14.dp))
-                .border(1.dp, Color(0xFF842C46), RoundedCornerShape(14.dp))
-                .padding(horizontal = 14.dp),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = valor,
-                    fontFamily = serifRegular,
-                    fontSize = 16.sp,
-                    color = Color(0xFF2D2D2D)
-                )
-
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        Text(text = "Ubicación", fontSize = 14.sp, color = Color.Gray)
+        Spacer(modifier = Modifier.height(4.dp))
+        OutlinedTextField(
+            value = valor,
+            onValueChange = {},
+            modifier = Modifier.fillMaxWidth(),
+            readOnly = true,
+            trailingIcon = {
                 IconButton(onClick = onClick) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_direccion),
-                        contentDescription = "Abrir mapa",
-                        tint = Color(0xFF842C46),
-                        modifier = Modifier.size(18.dp)
-                    )
+                    Icon(painterResource(id = R.drawable.ic_direccion), contentDescription = "Seleccionar ubicación")
                 }
             }
-        }
+        )
     }
 }
-
-
 @Composable
 fun MapaScreen(
-    initialLocation: LatLng = LatLng(-33.45, -70.65),
+    initialLocation: LatLng,
     onLocationSelected: (LatLng) -> Unit
 ) {
-    var selectedLocation by remember { mutableStateOf(initialLocation) }
-
-    // CameraPositionState inicial
     val cameraPositionState = rememberCameraPositionState {
-        position = com.google.android.gms.maps.model.CameraPosition.builder()
-            .target(initialLocation)
-            .zoom(12f)
-            .build()
+        position = CameraPosition.fromLatLngZoom(initialLocation, 14f)
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        GoogleMap(
-            modifier = Modifier.fillMaxSize(),
-            cameraPositionState = cameraPositionState,
-            onMapClick = { latLng ->
-                selectedLocation = latLng
-            }
-        ) {
-            Marker(
-                state = MarkerState(position = selectedLocation),
-                title = "Mi ubicación"
-            )
-        }
 
-        Button(
-            onClick = { onLocationSelected(selectedLocation) },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(16.dp)
-        ) {
-            Text("Seleccionar ubicación")
+    GoogleMap(
+        modifier = Modifier.fillMaxSize(),
+        cameraPositionState = cameraPositionState,
+        onMapClick = { latLng ->
+            onLocationSelected(latLng)
         }
+    ) {
+        Marker(
+            state = MarkerState(position = initialLocation),
+            title = "Ubicación seleccionada"
+        )
     }
 }

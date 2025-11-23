@@ -22,18 +22,21 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mente_libre_app.R
 import com.example.mente_libre_app.ui.theme.ButtonMagenta
 import com.example.mente_libre_app.ui.theme.Gray
 import com.example.mente_libre_app.ui.theme.MainColor
 import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModel
+import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModelFactory
 
 @Composable
 fun ObjetivoScreen(onNext: () -> Unit) {
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
-    val contexto = LocalContext.current
-    val viewModel = remember { UsuarioViewModel() }
+    val usuarioViewModel: UsuarioViewModel = viewModel(
+        factory = UsuarioViewModelFactory(LocalContext.current)
+    )
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
@@ -98,9 +101,9 @@ fun ObjetivoScreen(onNext: () -> Unit) {
 
             Button(
                 onClick = {
-                    if (opcionSeleccionada != null) {
-                        viewModel.guardarObjetivo(contexto, opcionSeleccionada!!)
-                        onNext()
+                    opcionSeleccionada?.let { objetivo ->
+                        usuarioViewModel.setObjetivo(objetivo) // guardamos en memoria
+                        onNext() // seguimos a la siguiente pantalla
                     }
                 },
                 enabled = opcionSeleccionada != null,

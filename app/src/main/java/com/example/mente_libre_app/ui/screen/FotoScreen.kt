@@ -93,9 +93,12 @@ fun FotoScreen(
         uri?.let {
             fotoPersonalizada = it
             avatarSeleccionado = null // Desmarcamos cualquier avatar
-            coroutineScope.launch { usuarioViewModel.guardarFoto(context, it.toString()) }
+            coroutineScope.launch {
+                usuarioViewModel.setFotoPerfil(it.toString()) // <-- aquí
+            }
         }
     }
+
 
     // Launcher cámara
     val camaraLauncher = rememberLauncherForActivityResult(
@@ -104,11 +107,14 @@ fun FotoScreen(
         if (success) {
             uriFotoTemporal?.let {
                 fotoPersonalizada = it
-                avatarSeleccionado = null // Desmarcamos cualquier avatar
-                coroutineScope.launch { usuarioViewModel.guardarFoto(context, it.toString()) }
+                avatarSeleccionado = null
+                coroutineScope.launch {
+                    usuarioViewModel.setFotoPerfil(it.toString()) // <-- aquí también
+                }
             }
         }
     }
+
 
     // Launcher para pedir permiso de cámara
     val permisoCamaraLauncher = rememberLauncherForActivityResult(
@@ -188,13 +194,10 @@ fun FotoScreen(
                             .clickable {
                                 avatarSeleccionado = index
                                 fotoPersonalizada = null
-                                // 🔹 Guardar avatar en ViewModel
                                 coroutineScope.launch {
-                                    // Guardamos el recurso como string, o ajusta según tu ViewModel
-                                    usuarioViewModel.guardarFoto(
-                                        context,
+                                    usuarioViewModel.setFotoPerfil(
                                         "android.resource://${context.packageName}/$avatar"
-                                    )
+                                    ) // <-- aquí
                                 }
                             }
                     )
