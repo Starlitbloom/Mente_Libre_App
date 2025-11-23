@@ -47,6 +47,7 @@ import com.example.mente_libre_app.R
 import com.example.mente_libre_app.data.local.mood.MoodDao
 import com.example.mente_libre_app.data.local.mood.MoodDatabase
 import com.example.mente_libre_app.data.local.mood.MoodEntry
+import com.example.mente_libre_app.data.local.mood.Mood   // 🔹 usamos el enum compartido
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import java.text.SimpleDateFormat
@@ -63,23 +64,6 @@ private val ChipBg = Color(0xFFFFFFFF)
 private val ChipStroke = Texto.copy(0.25f)
 private val CurveColor = Color(0xFF734B3A)
 private val MoodGreen = Color(0xFFA6E7A6)
-
-/* =================== ENUM DE ESTADOS ===================== */
-enum class Mood(
-    val label: String,
-    val imageRes: Int,
-    val color: Color,
-    val height: Float,   // altura relativa para el gráfico (0..1)
-    val desc: String
-) {
-    Feliz     ("Feliz",     R.drawable.cara_feliz,     Color(0xFFA6E7A6), 0.80f, "Ánimo alto, energía y motivación."),
-    Tranquilo ("Tranquilo", R.drawable.cara_tranquilo, Color(0xFFFFF1A6), 0.70f, "Calma, equilibrio y serenidad."),
-    Sereno    ("Sereno",    R.drawable.cara_sereno,    Color(0xFFAEDCFF), 0.60f, "Ligero bienestar, sin estrés notable."),
-    Neutral   ("Neutral",   R.drawable.cara_neutral,   Color(0xFFD9D9D9), 0.50f, "Sin emociones fuertes, estable."),
-    Enojado   ("Enojado",   R.drawable.cara_enojado,   Color(0xFFFFB3B3), 0.40f, "Irritación, molestia o frustración."),
-    Triste    ("Triste",    R.drawable.cara_triste,    Color(0xFFCFB8FF), 0.35f, "Bajo ánimo, decaimiento o nostalgia."),
-    Deprimido ("Deprimido", R.drawable.cara_deprimido, Color(0xFFB3C7FF), 0.25f, "Ánimo muy bajo; busca apoyo si persiste.")
-}
 
 /* =================== FECHAS ===================== */
 @Suppress("SimpleDateFormat")
@@ -388,7 +372,6 @@ fun AnimoScreen(onBack: (() -> Unit)? = null) {
                             Text("Sin datos en este período", color = Texto.copy(.55f))
                         }
                     } else {
-                        // ← deslizable en Mes/Año o si hay muchos puntos
                         val needsScroll = selectedPeriod >= 2 || pointsForChart.size > 12
                         val showSeparators = selectedPeriod == 3
                         MoodCurveScrollable(
@@ -420,7 +403,6 @@ fun AnimoScreen(onBack: (() -> Unit)? = null) {
                             } else {
                                 dao.insert(existing.copy(moodType = m.label))
                             }
-                            // refrescos
                             val (startIso, endIso) = periodRangeIso(selectedPeriod, anchorDate)
                             periodEntries = dao.entriesBetween(startIso, endIso)
                             monthEntries = dao.entriesBetween(
@@ -449,10 +431,9 @@ fun AnimoScreen(onBack: (() -> Unit)? = null) {
                 Button(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF1493)), // rosado brilloso
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF1493)),
                     onClick = {
                         scope.launch {
-                            // Datos del mes actual seleccionado
                             val startIso = currentMonth.atDay(1).toIso()
                             val endIso = currentMonth.atDay(currentMonth.daysInMonth()).toIso()
                             val entries = dao.entriesBetween(startIso, endIso)
@@ -465,7 +446,7 @@ fun AnimoScreen(onBack: (() -> Unit)? = null) {
                             pendingPdfData = Triple(
                                 "Registro de Ánimo - ${MONTH_FULL.format(currentMonth.atDay(1)).replaceFirstChar { it.titlecase(Locale("es","ES")) }} ${currentMonth.year}",
                                 Pair(points, entries),
-                                false // separadores no necesarios para 1 mes
+                                false
                             )
                             createPdfLauncher.launch(fileName)
                         }
@@ -478,7 +459,6 @@ fun AnimoScreen(onBack: (() -> Unit)? = null) {
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF1493)),
                     onClick = {
                         scope.launch {
-                            // Datos del año actual seleccionado en currentMonth.year
                             val c = Calendar.getInstance().apply {
                                 set(Calendar.YEAR, currentMonth.year)
                                 set(Calendar.MONTH, Calendar.JANUARY)
@@ -498,7 +478,7 @@ fun AnimoScreen(onBack: (() -> Unit)? = null) {
                             pendingPdfData = Triple(
                                 "Registro de Ánimo - Año ${currentMonth.year}",
                                 Pair(points, entries),
-                                true // separadores de inicio de mes
+                                true
                             )
                             createPdfLauncher.launch(fileName)
                         }
@@ -557,7 +537,7 @@ fun AnimoScreen(onBack: (() -> Unit)? = null) {
                                 contentAlignment = Alignment.Center
                             ) {
                                 Image(
-                                    painter = painterResource(m.imageRes),
+                                    painter = painterResource(m.icon),
                                     contentDescription = m.label,
                                     modifier = Modifier
                                         .size(34.dp)
@@ -567,7 +547,7 @@ fun AnimoScreen(onBack: (() -> Unit)? = null) {
                             Spacer(Modifier.width(12.dp))
                             Column(Modifier.weight(1f)) {
                                 Text(m.label, color = Texto, fontWeight = FontWeight.SemiBold)
-                                Text(m.desc, color = Texto.copy(.8f), fontSize = 13.sp)
+                                Text(m.description, color = Texto.copy(.8f), fontSize = 13.sp)
                             }
                         }
                     }
@@ -661,7 +641,7 @@ private fun MoodPickerRow(
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
-                        painter = painterResource(id = m.imageRes),
+                        painter = painterResource(id = m.icon),
                         contentDescription = m.label,
                         modifier = Modifier
                             .size(if (sel) 46.dp else 40.dp)
@@ -683,8 +663,7 @@ private fun MoodPickerRow(
     }
 }
 
-/* Gráfico Bezier + puntos; salta días sin dato
-   ➜ AHORA: separadores y etiquetas de mes en rosado brilloso cuando showMonthSeparators = true */
+/* Gráfico Bezier + puntos */
 @Composable
 private fun MoodCurve(
     points: List<MoodPoint>,
@@ -701,7 +680,7 @@ private fun MoodCurve(
         val coords = points.mapIndexed { i, mp ->
             val x = left + i * step
             val mood = mp.mood
-            val y = if (mood != null) bottom - (mood.height * (bottom - top)) else Float.NaN
+            val y = if (mood != null) bottom - (mood.score * (bottom - top)) else Float.NaN
             Offset(x, y)
         }
 
@@ -724,7 +703,6 @@ private fun MoodCurve(
             drawCircle(color = mood.color.copy(alpha = 0.95f), radius = 9f, center = v.value)
         }
 
-        // Etiquetas inferior (días cortos)
         val paint = android.graphics.Paint().apply {
             isAntiAlias = true; textSize = 26f
             color = android.graphics.Color.parseColor("#842C46")
@@ -737,14 +715,13 @@ private fun MoodCurve(
             drawContext.canvas.nativeCanvas.drawText(label, 16f + i * stepX, size.height - 6f, paint)
         }
 
-        // ---------- Separadores + etiquetas de mes (ROSADO BRILLOSO) ----------
         if (showMonthSeparators && points.isNotEmpty()) {
             val deepPink = "#FF1493"
             val linePaint = android.graphics.Paint().apply {
                 isAntiAlias = true
                 strokeWidth = 3f
                 color = android.graphics.Color.parseColor(deepPink)
-                setShadowLayer(6f, 0f, 0f, android.graphics.Color.parseColor("#FFFF80C0")) // halo rosado
+                setShadowLayer(6f, 0f, 0f, android.graphics.Color.parseColor("#FFFF80C0"))
             }
             val monthTextPaint = android.graphics.Paint().apply {
                 isAntiAlias = true
@@ -770,8 +747,6 @@ private fun MoodCurve(
     }
 }
 
-/* === Envoltura scrollable para el gráfico ===
-   ➜ pasa showMonthSeparators hacia adentro */
 @Composable
 private fun MoodCurveScrollable(
     points: List<MoodPoint>,
@@ -781,7 +756,7 @@ private fun MoodCurveScrollable(
     val height = 220.dp
     if (scroll) {
         val ticks = (points.size - 1).coerceAtLeast(1)
-        val totalWidth = ((48f * ticks) + 32f).dp  // ~48dp por tick + márgenes laterales
+        val totalWidth = ((48f * ticks) + 32f).dp
         Box(Modifier.horizontalScroll(rememberScrollState())) {
             MoodCurve(
                 points = points,
@@ -802,78 +777,7 @@ private fun MoodCurveScrollable(
     }
 }
 
-/* ======= Calendario mensual (opcional) ======= */
-@Composable
-private fun CalendarMonth(
-    monthState: MonthState,
-    entries: List<MoodEntry>,
-    onPrev: () -> Unit,
-    onNext: () -> Unit
-) {
-    val byDate = remember(entries) { entries.associate { isoToDate(it.date) to moodFromLabel(it.moodType) } }
-    val daysInMonth = monthState.daysInMonth()
-    val leading = monthState.leadingEmptySlotsMonday()
-
-    Surface(
-        color = Color.White,
-        shape = RoundedCornerShape(18.dp),
-        shadowElevation = 8.dp,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(Modifier.padding(14.dp)) {
-
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    monthState.title(), color = Texto, fontSize = 18.sp, fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.weight(1f)
-                )
-                TextButton(onClick = onPrev) { Text("◀") }
-                TextButton(onClick = onNext) { Text("▶") }
-            }
-            Spacer(Modifier.height(6.dp))
-
-            val days = listOf("Lun","Mar","Mié","Jue","Vie","Sáb","Dom")
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                days.forEach { Text(it, color = Texto.copy(.7f), fontSize = 12.sp, modifier = Modifier.width(36.dp), textAlign = TextAlign.Center) }
-            }
-            Spacer(Modifier.height(8.dp))
-
-            val totalCells = leading + daysInMonth
-            val rows = ceil(totalCells / 7.0).roundToInt().coerceAtLeast(1)
-
-            var dayCounter = 1
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                repeat(rows) { rowIndex ->
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        repeat(7) { cell ->
-                            val showDay = (rowIndex * 7 + cell) >= leading && dayCounter <= daysInMonth
-                            if (showDay) {
-                                val date = monthState.atDay(dayCounter++)
-                                val mood = byDate[date]
-
-                                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(36.dp)) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(28.dp)
-                                            .clip(CircleShape)
-                                            .background((mood?.color ?: Color.Transparent).copy(alpha = if (mood != null) 0.35f else 0.10f))
-                                            .border(1.dp, (mood?.color ?: ChipStroke), CircleShape)
-                                    )
-                                    Spacer(Modifier.height(4.dp))
-                                    Text("${calOf(date).get(Calendar.DAY_OF_MONTH)}", color = Texto, fontSize = 12.sp)
-                                }
-                            } else {
-                                Spacer(Modifier.width(36.dp))
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-/* ======= Tira mensual estilo mockup (NÚMERO ARRIBA, DÍA ABAJO) ======= */
+/* ======= Tira mensual ======= */
 @Composable
 private fun MonthHistoryStrip(
     monthState: MonthState,
@@ -967,7 +871,7 @@ private fun MonthHistoryStrip(
                 ) {
                     if (mood != null) {
                         Image(
-                            painter = painterResource(mood.imageRes),
+                            painter = painterResource(mood.icon),
                             contentDescription = mood.label,
                             modifier = Modifier.size(22.dp)
                         )
@@ -984,7 +888,7 @@ private fun MonthHistoryStrip(
     }
 }
 
-/* ======= Historial reciente (últimos 90 días) ======= */
+/* ======= Historial reciente ======= */
 @Composable
 private fun RecentHistory(
     entries: List<MoodEntry>,
@@ -1024,9 +928,11 @@ private fun RecentHistory(
                     ) {
                         if (mood != null) {
                             Image(
-                                painter = painterResource(id = mood.imageRes),
+                                painter = painterResource(id = mood.icon),
                                 contentDescription = mood.label,
-                                modifier = Modifier.size(24.dp).clip(CircleShape)
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clip(CircleShape)
                             )
                         }
                     }
@@ -1052,21 +958,19 @@ private fun exportMoodPdf(
     entries: List<MoodEntry>,
     showMonthSeparators: Boolean
 ) {
-    val pageWidth = 595     // A4 en puntos (72dpi): 595x842
+    val pageWidth = 595
     val pageHeight = 842
     val doc = PdfDocument()
     val pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, 1).create()
     val page = doc.startPage(pageInfo)
     val canvas = page.canvas
 
-    // Fondo suave
     val bgPaint = Paint().apply { color = android.graphics.Color.parseColor("#FFF7FB") }
     canvas.drawRect(0f, 0f, pageWidth.toFloat(), pageHeight.toFloat(), bgPaint)
 
-    // Encabezado
     val headerPaint = Paint().apply {
         isAntiAlias = true
-        color = android.graphics.Color.parseColor("#FF1493") // rosado brilloso
+        color = android.graphics.Color.parseColor("#FF1493")
         textSize = 18f
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
     }
@@ -1076,7 +980,6 @@ private fun exportMoodPdf(
         textSize = 14f
     }
 
-    // Logo
     try {
         val logoBmp = BitmapFactory.decodeResource(context.resources, R.drawable.logo_mente_libre)
         if (logoBmp != null) {
@@ -1085,7 +988,6 @@ private fun exportMoodPdf(
             canvas.drawText(title, 32f + 48f + 16f, 44f, headerPaint)
             canvas.drawText(subtitle, 32f + 48f + 16f, 64f, textPaint)
         } else {
-            // fallback si no hay logo
             canvas.drawText(title, 32f, 44f, headerPaint)
             canvas.drawText(subtitle, 32f, 64f, textPaint)
         }
@@ -1094,7 +996,6 @@ private fun exportMoodPdf(
         canvas.drawText(subtitle, 32f, 64f, textPaint)
     }
 
-    // Caja para el gráfico
     val chartLeft = 36f
     val chartTop = 90f
     val chartRight = pageWidth - 36f
@@ -1107,14 +1008,12 @@ private fun exportMoodPdf(
     }
     canvas.drawRoundRect(chartLeft, chartTop, chartRight, chartBottom, 10f, 10f, border)
 
-    // Gráfico
     drawChartOnPdfCanvas(canvas, chartLeft, chartTop, chartRight, chartBottom, points, showMonthSeparators)
 
-    // Leyenda de caritas (significado)
     var legendX = chartLeft
     val legendY = chartBottom + 22f
     enumValues<Mood>().forEach { m ->
-        val bmp = BitmapFactory.decodeResource(context.resources, m.imageRes)
+        val bmp = BitmapFactory.decodeResource(context.resources, m.icon)
         if (bmp != null) {
             val icon = Bitmap.createScaledBitmap(bmp, 18, 18, true)
             canvas.drawBitmap(icon, legendX, legendY - 14f, null)
@@ -1123,7 +1022,6 @@ private fun exportMoodPdf(
         legendX += 84f
     }
 
-    // Título de tabla
     val tableTitlePaint = Paint().apply {
         isAntiAlias = true
         color = android.graphics.Color.parseColor("#842C46")
@@ -1132,14 +1030,12 @@ private fun exportMoodPdf(
     }
     canvas.drawText("Registro de estados", chartLeft, legendY + 32f, tableTitlePaint)
 
-    // Cabeceras
     val rowStartY = legendY + 50f
     val colDateX = chartLeft
     val colMoodX = pageWidth / 2f
     canvas.drawText("Fecha", colDateX, rowStartY, tableTitlePaint)
     canvas.drawText("Estado", colMoodX, rowStartY, tableTitlePaint)
 
-    // Filas (simple)
     val rowPaint = Paint().apply {
         color = android.graphics.Color.parseColor("#444444")
         textSize = 12f
@@ -1155,7 +1051,6 @@ private fun exportMoodPdf(
         if (y > pageHeight - 36) return@forEach
     }
 
-    // Pie
     val footPaint = Paint().apply {
         color = android.graphics.Color.parseColor("#999999")
         textSize = 10f
@@ -1170,7 +1065,6 @@ private fun exportMoodPdf(
     doc.close()
 }
 
-/* Dibuja un gráfico simple (línea + puntos) en el canvas del PDF */
 private fun drawChartOnPdfCanvas(
     canvas: android.graphics.Canvas,
     left: Float,
@@ -1185,15 +1079,13 @@ private fun drawChartOnPdfCanvas(
     val height = bottom - top
     val step = if (points.size > 1) width / (points.size - 1) else 0f
 
-    // Mapea puntos
     val coords = points.mapIndexed { i, mp ->
         val x = left + i * step
-        val y = mp.mood?.let { bottom - (it.height * height) } ?: Float.NaN
+        val y = mp.mood?.let { bottom - (it.score * height) } ?: Float.NaN
         PointF(x, y)
     }
     val valid = coords.withIndex().filter { !it.value.y.isNaN() }
 
-    // Línea
     if (valid.size >= 2) {
         val path = android.graphics.Path().apply {
             moveTo(valid.first().value.x, valid.first().value.y)
@@ -1214,7 +1106,6 @@ private fun drawChartOnPdfCanvas(
         canvas.drawPath(path, linePaint)
     }
 
-    // Puntos
     valid.forEach { v ->
         val mood = points[v.index].mood!!
         val dotPaint = Paint().apply {
@@ -1225,7 +1116,6 @@ private fun drawChartOnPdfCanvas(
         canvas.drawCircle(v.value.x, v.value.y, 5.5f, dotPaint)
     }
 
-    // Separadores de mes (rosado brilloso)
     if (showMonthSeparators) {
         val deepPink = android.graphics.Color.parseColor("#FF1493")
         val linePaint = Paint().apply {
