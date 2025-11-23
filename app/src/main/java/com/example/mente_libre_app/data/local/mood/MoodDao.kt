@@ -28,4 +28,12 @@ interface MoodDao {
     // (Opcional) útil para pruebas
     @Query("DELETE FROM mood_entries")
     suspend fun clear()
+
+    // NUEVO: todas las entradas que tienen texto de diario
+    @Query("""
+        SELECT * FROM mood_entries
+        WHERE gratitude_text IS NOT NULL
+        ORDER BY date DESC
+    """)
+    suspend fun entriesWithGratitude(): List<MoodEntry>
 }

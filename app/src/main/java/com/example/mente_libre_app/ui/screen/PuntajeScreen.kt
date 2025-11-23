@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.mente_libre_app.data.local.mood.Mood
 import com.example.mente_libre_app.data.local.mood.MoodDao
 import com.example.mente_libre_app.data.local.mood.MoodDatabase
 import com.example.mente_libre_app.data.local.mood.MoodEntry
