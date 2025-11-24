@@ -1,5 +1,6 @@
 package com.example.mente_libre_app.ui.screen
 
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,6 +33,8 @@ import com.example.mente_libre_app.data.local.mood.Mood
 import com.example.mente_libre_app.data.local.mood.MoodDao
 import com.example.mente_libre_app.data.local.mood.MoodDatabase
 import com.example.mente_libre_app.data.local.mood.MoodEntry
+import com.example.mente_libre_app.data.viewmodel.EvaluationViewModel
+import com.example.mente_libre_app.data.viewmodel.EvaluationViewModelFactory
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -66,6 +69,11 @@ fun DiarioGratitudScreen(
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
+
+    // 🔗 ViewModel que llama al microservicio evaluation-service
+    val evaluationViewModel: EvaluationViewModel = viewModel(
+        factory = EvaluationViewModelFactory(context)
+    )
 
     val moodDao: MoodDao = remember { MoodDatabase.getInstance(context).moodDao() }
     val appDb = remember { AppDatabase.getInstance(context) }
@@ -232,6 +240,15 @@ fun DiarioGratitudScreen(
 
                         scope.launch {
 
+                            // ---- 1) ENVIAR AL MICRO SERVICIO -----------------
+                            evaluationViewModel.saveGratitude(
+                                date = iso,
+                                moodLabel = mood?.label,
+                                title = cleanTitle,
+                                text = cleanText
+                            )
+
+                            // ---- 2) GUARDAR EN LOCAL (Room) -------------------
                             if (mood != null) {
                                 val existing = moodDao.entryOn(iso)
                                 if (existing == null) {
@@ -268,7 +285,11 @@ fun DiarioGratitudScreen(
                         .height(52.dp),
                     shape = RoundedCornerShape(20.dp)
                 ) {
-                    Text("Guardar entrada", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        text = "Guardar entrada",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
         }
@@ -314,7 +335,7 @@ fun DiarioGratitudScreen(
 }
 
 /* ============================================================
-   SELECTOR DE EMOCIONES — NUEVA VERSIÓN (IMÁGEN+GRANDE)
+   SELECTOR DE EMOCIONES
    ============================================================ */
 
 @Composable
@@ -345,7 +366,6 @@ fun EmotionSelector(
                 modifier = Modifier.clickable { onSelect(mood) }
             ) {
 
-                // 🔥 Nuevo tamaño del círculo (más pequeño)
                 val circleSize = if (isSelected) 68.dp else 62.dp
 
                 Box(
@@ -365,13 +385,11 @@ fun EmotionSelector(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-
-                    // 🔥 Imagen más grande — ocupa todo el círculo
                     Image(
                         painter = painterResource(mood.icon),
                         contentDescription = mood.label,
                         modifier = Modifier.size(
-                            if (isSelected) 58.dp else 52.dp // << Aumentado
+                            if (isSelected) 58.dp else 52.dp
                         )
                     )
                 }
