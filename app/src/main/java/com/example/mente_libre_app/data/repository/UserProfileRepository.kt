@@ -2,6 +2,7 @@ package com.example.mente_libre_app.data.repository
 
 import android.content.Context
 import com.example.mente_libre_app.data.remote.core.RetrofitInstance
+import com.example.mente_libre_app.data.remote.dto.AuthUserDto
 import com.example.mente_libre_app.data.remote.dto.CreateUserProfileRequestDto
 import com.example.mente_libre_app.data.remote.dto.UserProfileDto
 import com.example.mente_libre_app.data.remote.dto.UserProfileCombinedDto
@@ -49,10 +50,28 @@ class UserProfileRepository(context: Context) {
         }
     }
 
-    // --- Crear o actualizar perfil ---
+    // --- Crear perfil ---
     suspend fun createProfile(request: CreateUserProfileRequestDto): Result<UserProfileDto> {
         return try {
             Result.success(profileApi.createProfile(request))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // --- Actualizar perfil ---
+    suspend fun updateProfile(id: Long, request: CreateUserProfileRequestDto): Result<UserProfileDto> {
+        return try {
+            Result.success(profileApi.updateProfile(id, request))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // --- Obtener datos de auth ---
+    suspend fun getAuthUser(userId: Long): Result<AuthUserDto> {
+        return try {
+            Result.success(authApi.getUserById(userId))
         } catch (e: Exception) {
             Result.failure(e)
         }
