@@ -2,8 +2,10 @@ package com.example.mente_libre_app.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mente_libre_app.data.remote.dto.CreateUserProfileRequestDto
 import com.example.mente_libre_app.data.repository.UserProfileRepository
+import com.example.mente_libre_app.data.remote.dto.userprofile.CreateUserProfileRequestDto
+import com.example.mente_libre_app.data.remote.dto.userprofile.UpdateUserProfileRequestDto
+import com.example.mente_libre_app.data.remote.dto.userprofile.UserProfileResponseDto
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -12,122 +14,116 @@ class UsuarioViewModel(
     private val repository: UserProfileRepository
 ) : ViewModel() {
 
-    // --- Campos del perfil ---
-    private val _nombre = MutableStateFlow("")
-    val nombre: StateFlow<String> = _nombre
+    // --- UI STATE ---
+    private val _perfil = MutableStateFlow<UserProfileResponseDto?>(null)
+    val perfil: StateFlow<UserProfileResponseDto?> = _perfil
 
-    private val _email = MutableStateFlow("")
-    val email: StateFlow<String> = _email
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error
 
-    private val _telefono = MutableStateFlow("")
-    val telefono: StateFlow<String> = _telefono
+    private val _loading = MutableStateFlow(false)
+    val loading: StateFlow<Boolean> = _loading
 
-    private val _direccion = MutableStateFlow("")
-    val direccion: StateFlow<String> = _direccion
+    private val _objetivo = MutableStateFlow<String?>(null)
+    val objetivo: StateFlow<String?> = _objetivo
 
-    private val _cumpleanos = MutableStateFlow("")
-    val cumpleanos: StateFlow<String> = _cumpleanos
+    private val _generoId = MutableStateFlow<Long?>(null)
+    val generoId: StateFlow<Long?> = _generoId
 
-    private val _generoId = MutableStateFlow(0L)
-    val generoId: StateFlow<Long> = _generoId
-
-    private val _generoNombre = MutableStateFlow("No especificado")
-    val generoNombre: StateFlow<String> = _generoNombre
-
-    private val _ubicacion = MutableStateFlow<Pair<Double, Double>?>(null)
-    val ubicacion: StateFlow<Pair<Double, Double>?> = _ubicacion
+    private val _generoNombre = MutableStateFlow<String?>(null)
+    val generoNombre: StateFlow<String?> = _generoNombre
 
     private val _fotoPerfil = MutableStateFlow<String?>(null)
     val fotoPerfil: StateFlow<String?> = _fotoPerfil
 
-    private val _errorMsg = MutableStateFlow<String?>(null)
-    val errorMsg: StateFlow<String?> = _errorMsg
+    private val _tema = MutableStateFlow("Rosado")   // Valor por defecto
+    val tema: StateFlow<String> = _tema
 
-    // --- Funciones para actualizar campos locales ---
-    fun setFotoPerfil(uri: String?) { _fotoPerfil.value = uri }
-    fun setCumpleanos(valor: String) { _cumpleanos.value = valor }
+    // ============================================================
+    // CARGAR PERFIL DESDE BACKEND
+    fun cargarMiPerfil() {
+        viewModelScope.launch {
+            _loading.value = true
+            try {
+                val response = repository.getMyProfile()
+                _perfil.value = response
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Error al obtener perfil"
+            }
+            _loading.value = false
+        }
+    }
+
+    // ============================================================
+    // CREAR PERFIL
+    fun crearPerfil(dto: CreateUserProfileRequestDto, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            _loading.value = true
+
+            try {
+                val resultado = repository.createProfile(dto)
+                _perfil.value = resultado
+                _error.value = null
+                onResult(true)
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Error al crear perfil"
+                onResult(false)
+            }
+
+            _loading.value = false
+        }
+    }
+
+    // ============================================================
+    // ACTUALIZAR PERFIL
+    fun actualizarPerfil(dto: UpdateUserProfileRequestDto, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            _loading.value = true
+
+            try {
+                val updated = repository.updateMyProfile(dto)
+                _perfil.value = updated
+                onResult(true)
+                _error.value = null
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Error al actualizar perfil"
+                onResult(false)
+            }
+
+            _loading.value = false
+        }
+    }
+
+    // ============================================================
+    // ELIMINAR PERFIL
+    fun eliminarPerfil(onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                repository.deleteMyProfile()
+                _perfil.value = null
+                onResult(true)
+            } catch (e: Exception) {
+                _error.value = e.message
+                onResult(false)
+            }
+        }
+    }
+
+    fun setObjetivo(valor: String) {
+        _objetivo.value = valor
+    }
+
     fun setGeneroId(id: Long, nombre: String) {
         _generoId.value = id
         _generoNombre.value = nombre
     }
-    fun setDireccion(valor: String) { _direccion.value = valor }
-    fun setUbicacion(lat: Double, lon: Double) { _ubicacion.value = Pair(lat, lon) }
-    fun setUsername(valor: String) { _nombre.value = valor }
-    fun setEmail(valor: String) { _email.value = valor }
-    fun setPhone(valor: String) { _telefono.value = valor }
 
-    // --- Cargar perfil desde backend ---
-    fun cargarPerfil(userId: Long) {
-        viewModelScope.launch {
-            val result = repository.getFullUserProfile(userId)
-            result.fold(
-                onSuccess = { perfil ->
-                    _nombre.value = perfil.username
-                    _email.value = perfil.email
-                    _telefono.value = perfil.phone
-                    _direccion.value = perfil.direccion
-                    _cumpleanos.value = perfil.fechaNacimiento
-                    _generoId.value = perfil.generoId
-                    _generoNombre.value = perfil.generoNombre
-                    _fotoPerfil.value = perfil.fotoPerfil
-                    _errorMsg.value = null
-                    // Agregar log para depuración
-                    println("Perfil cargado: nombre=${perfil.username}, email=${perfil.email}, foto=${perfil.fotoPerfil}")
-                },
-                onFailure = { e ->
-                    _errorMsg.value = e.message ?: "Error al cargar perfil"
-                    // Agregar log para depuración
-                    println("Error al cargar perfil: ${e.message}")
-                    // Intentar cargar solo auth si falla todo
-                    val authResult = repository.getAuthUser(userId)
-                    authResult.fold(
-                        onSuccess = { auth ->
-                            _nombre.value = auth.username
-                            _email.value = auth.email
-                            _telefono.value = auth.phone
-                            println("Cargado solo auth: nombre=${auth.username}")
-                        },
-                        onFailure = { e2 ->
-                            println("Error al cargar auth: ${e2.message}")
-                        }
-                    )
-                }
-            )
-        }
+    fun setFotoPerfil(uri: String) {
+        _fotoPerfil.value = uri
     }
 
-    // --- Crear o actualizar perfil ---
-    fun actualizarPerfil(
-        userId: Long,
-        direccion: String,
-        fechaNacimiento: String,
-        generoId: Long,
-        fotoPerfil: String?, // opcional
-        onResult: (Boolean) -> Unit
-    ) {
-        viewModelScope.launch {
-            val request = CreateUserProfileRequestDto(
-                userId = userId,
-                direccion = direccion,
-                fechaNacimiento = fechaNacimiento,
-                notificaciones = false,
-                generoId = generoId,
-                fotoPerfil = fotoPerfil
-            )
-            val result = repository.createProfile(request)
-            result.fold(
-                onSuccess = { onResult(true) },
-                onFailure = { e ->
-                    _errorMsg.value = e.message ?: "Error al actualizar perfil"
-                    onResult(false)
-                }
-            )
-        }
+    fun setTema(nuevoTema: String) {
+        _tema.value = nuevoTema
     }
-
-    // --- Campo temporal para objetivo ---
-    private val _objetivoSeleccionado = MutableStateFlow<String?>(null)
-    val objetivoSeleccionado: StateFlow<String?> = _objetivoSeleccionado
-
-    fun setObjetivo(objetivo: String) { _objetivoSeleccionado.value = objetivo }
 }

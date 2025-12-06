@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.Font
@@ -20,7 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
+
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mente_libre_app.R
@@ -31,12 +32,12 @@ import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModel
 import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModelFactory
 
 @Composable
-fun ObjetivoScreen(onNext: () -> Unit) {
+fun ObjetivoScreen(
+    usuarioViewModel: UsuarioViewModel,
+    onNext: () -> Unit
+) {
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
-    val usuarioViewModel: UsuarioViewModel = viewModel(
-        factory = UsuarioViewModelFactory(LocalContext.current)
-    )
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 

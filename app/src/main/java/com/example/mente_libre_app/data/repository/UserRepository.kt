@@ -1,43 +1,77 @@
 package com.example.mente_libre_app.data.repository
 
-import android.content.Context
-import com.example.mente_libre_app.data.local.TokenManager
+import com.example.mente_libre_app.data.local.TokenDataStore
 import com.example.mente_libre_app.data.remote.api.AuthApi
 import com.example.mente_libre_app.data.remote.core.RetrofitInstance
-import com.example.mente_libre_app.data.remote.dto.LoginRequestDto
-import com.example.mente_libre_app.data.remote.dto.LoginResponseDto
-import com.example.mente_libre_app.data.remote.dto.RegisterRequestDto
+import com.example.mente_libre_app.data.remote.dto.auth.LoginRequestDto
+import com.example.mente_libre_app.data.remote.dto.auth.LoginResponseDto
+import com.example.mente_libre_app.data.remote.dto.auth.RegisterRequestDto
+import com.example.mente_libre_app.data.remote.dto.auth.UserResponseDto
+import kotlinx.coroutines.flow.first
 
-class UserRepository(private val context: Context) {
-
-    private val api = RetrofitInstance.getAuthService(context)
-    private val tokenManager = TokenManager(context)
+class UserRepository(
+    private val tokenDataStore: TokenDataStore,
+    private val api: AuthApi
+) {
 
     suspend fun login(email: String, password: String): Result<LoginResponseDto> {
         return try {
             val response = api.login(LoginRequestDto(email, password))
-            // Guardamos token + userId
-            tokenManager.saveToken(response.token, response.userId)
-            Result.success(response)
+
+            if (response.isSuccessful) {
+                val body = response.body()!!
+
+                tokenDataStore.saveToken(body.token)
+                tokenDataStore.saveUserId(body.userId)
+
+                Result.success(body)
+            } else {
+                Result.failure(Exception("Error en login: ${response.code()}"))
+            }
+
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    suspend fun register(request: RegisterRequestDto): Result<Unit> {
+    suspend fun register(request: RegisterRequestDto): Result<UserResponseDto> {
         return try {
-            api.register(request)
-            Result.success(Unit)
+            val response = api.register(request)
+
+            if (response.isSuccessful) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Error al registrar: ${response.code()}"))
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    suspend fun getCurrentUserId(): Long? {
-        return tokenManager.getUserId()
+    suspend fun getProfile(): Result<UserResponseDto> {
+        return try {
+            val token = tokenDataStore.tokenFlow.first()
+                ?: return Result.failure(Exception("No hay token"))
+
+            val response = api.getProfile("Bearer $token")
+
+            if (response.isSuccessful) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Error al obtener perfil: ${response.code()}"))
+            }
+
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
-    fun logout() {
-        tokenManager.clear()
+    suspend fun logout() {
+        tokenDataStore.clearToken()
+        tokenDataStore.clearUserId()
+    }
+
+    suspend fun getUserId(): Long? {
+        return tokenDataStore.userIdFlow.first()
     }
 }

@@ -52,7 +52,7 @@ import com.example.mente_libre_app.ui.screen.MascotaScreen
 import com.example.mente_libre_app.ui.screen.NombrarMascotaScreen
 import com.example.mente_libre_app.ui.screen.ObjetivoScreen
 import com.example.mente_libre_app.ui.screen.OrganizarseScreen
-import com.example.mente_libre_app.ui.screen.PerfilScreen
+//import com.example.mente_libre_app.ui.screen.PerfilScreen
 import com.example.mente_libre_app.ui.screen.PortadaScreen
 import com.example.mente_libre_app.ui.screen.SaludScreen
 import com.example.mente_libre_app.ui.screen.SelectorScreen
@@ -172,37 +172,42 @@ fun AppNavGraph(
                         onLoginClick = goIniciar
                     )
                 }
-                composable(Route.Objetivo.path) {
-                    ObjetivoScreen(onNext = goGenero)
+                composable("objetivo") {
+                    val usuarioViewModel: UsuarioViewModel = viewModel()
+                    ObjetivoScreen(
+                        usuarioViewModel = usuarioViewModel,
+                        onNext = { navController.navigate("genero") }
+                    )
                 }
+
                 composable(Route.Genero.path) {
                     GeneroScreen(onNext = { navController.navigate("FotoScreen") })
                 }
-                composable(
-                    route = "FotoScreen?isEditingProfile={isEditingProfile}",
-                    arguments = listOf(
-                        navArgument("isEditingProfile") {
-                            type = NavType.BoolType
-                            defaultValue = false
-                        }
-                    )
-                ) { backStackEntry ->
-                    val usuarioViewModel: UsuarioViewModel = viewModel(
-                        factory = UsuarioViewModelFactory(LocalContext.current)
-                    )
-                    val isEditing = backStackEntry.arguments?.getBoolean("isEditingProfile") ?: false
-                    FotoScreen(
-                        usuarioViewModel = usuarioViewModel,
-                        isEditingProfile = isEditing,
-                        onNext = {
-                            if (isEditing) {
-                                navController.popBackStack()
-                            } else {
-                                navController.navigate(Route.Huella.path)
-                            }
-                        }
-                    )
-                }
+//                composable(
+//                    route = "FotoScreen?isEditingProfile={isEditingProfile}",
+//                    arguments = listOf(
+//                        navArgument("isEditingProfile") {
+//                            type = NavType.BoolType
+//                            defaultValue = false
+//                        }
+//                    )
+//                ) { backStackEntry ->
+//                    val usuarioViewModel: UsuarioViewModel = viewModel(
+//                        factory = UsuarioViewModelFactory(LocalContext.current)
+//                    )
+//                    val isEditing = backStackEntry.arguments?.getBoolean("isEditingProfile") ?: false
+//                    FotoScreen(
+//                        usuarioViewModel = usuarioViewModel,
+//                        isEditingProfile = isEditing,
+//                        onNext = {
+//                            if (isEditing) {
+//                                navController.popBackStack()
+//                            } else {
+//                                navController.navigate(Route.Huella.path)
+//                            }
+//                        }
+//                    )
+//                }
                 composable(Route.Huella.path) {
                     HuellaScreen(
                         activity = activity,
@@ -294,31 +299,31 @@ fun AppNavGraph(
                         onCerrarSesion = { /* acción cerrar sesión */ }
                     )
                 }
-                composable(Route.Perfil.path) {
-                    val currentUserId by authViewModel.currentUserId.collectAsState()
-
-                    if (currentUserId != null) {
-                        val usuarioViewModel: UsuarioViewModel = viewModel(
-                            factory = UsuarioViewModelFactory(LocalContext.current)
-                        )
-                        // Llamamos cargarPerfil solo si todavía no se ha cargado
-                        LaunchedEffect(currentUserId) {
-                            usuarioViewModel.cargarPerfil(currentUserId!!)
-                        }
-
-                        PerfilScreen(
-                            usuarioViewModel = usuarioViewModel,
-                            authViewModel = authViewModel,
-                            userId = currentUserId!!,
-                            onBackClick = { navController.popBackStack() },
-                            onEditarFotoClick = { navController.navigate("FotoScreen?isEditingProfile=true") }
-                        )
-                    } else {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("Cargando perfil...")
-                        }
-                    }
-                }
+//                composable(Route.Perfil.path) {
+//                    val currentUserId by authViewModel.currentUserId.collectAsState()
+//
+//                    if (currentUserId != null) {
+//                        val usuarioViewModel: UsuarioViewModel = viewModel(
+//                            factory = UsuarioViewModelFactory(LocalContext.current)
+//                        )
+//                        // Llamamos cargarPerfil solo si todavía no se ha cargado
+//                        LaunchedEffect(currentUserId) {
+//                            usuarioViewModel.cargarPerfil(currentUserId!!)
+//                        }
+//
+//                        PerfilScreen(
+//                            usuarioViewModel = usuarioViewModel,
+//                            authViewModel = authViewModel,
+//                            userId = currentUserId!!,
+//                            onBackClick = { navController.popBackStack() },
+//                            onEditarFotoClick = { navController.navigate("FotoScreen?isEditingProfile=true") }
+//                        )
+//                    } else {
+//                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+//                            Text("Cargando perfil...")
+//                        }
+//                    }
+//                }
 
 
             }

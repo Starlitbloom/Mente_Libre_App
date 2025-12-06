@@ -1,6 +1,5 @@
 package com.example.mente_libre_app.viewmodel
 
-import com.example.mente_libre_app.data.remote.dto.UserProfileCombinedDto
 import com.example.mente_libre_app.data.repository.UserProfileRepository
 import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModel
 import io.mockk.coEvery

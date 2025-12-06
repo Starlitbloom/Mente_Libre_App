@@ -24,7 +24,7 @@
         android:networkSecurityConfig="@xml/network_security_config">
 
         <activity
-            android:name=".MainActivity"
+            android:name=".TestActivity"
             android:exported="true"
             android:label="Mente Libre"
             android:theme="@style/Theme.Mente_Libre_App">
@@ -34,7 +34,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".TestActivity" />
+        <activity android:name=".MainActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

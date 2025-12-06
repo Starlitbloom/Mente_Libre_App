@@ -56,7 +56,6 @@ dependencies {
     implementation(libs.androidx.animation)
     implementation(libs.androidx.compiler)
     implementation(libs.core.ktx)
-    implementation(libs.firebase.firestore.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -50,21 +50,3 @@ val GreenColors = lightColorScheme(
     onBackground = MainColor,
     onSurface = GrayG
 )
-
-@Composable
-fun Mente_Libre_AppTheme(
-    selectedTheme: String?, // puede ser "Pink", "Purple" o "Green"
-    content: @Composable () -> Unit
-) {
-    val colors = when (selectedTheme) {
-        "Purple" -> PurpleColors
-        "Green" -> GreenColors
-        else -> PinkColors // por defecto rosado
-    }
-
-    MaterialTheme(
-        colorScheme = colors,
-        typography = Typography,
-        content = content
-    )
-}

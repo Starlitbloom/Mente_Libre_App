@@ -39,6 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mente_libre_app.R
+import com.example.mente_libre_app.data.remote.core.RetrofitInstance
+import com.example.mente_libre_app.data.repository.UserProfileRepository
 import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModel
 import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModelFactory
 
@@ -48,10 +50,11 @@ fun GeneroScreen(onNext: () -> Unit) {
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
+    val context = LocalContext.current
+
     val usuarioViewModel: UsuarioViewModel = viewModel(
-        factory = UsuarioViewModelFactory(LocalContext.current)
+        factory = UsuarioViewModelFactory(context)
     )
-    val contexto = LocalContext.current
 
     var generoSeleccionado by remember { mutableStateOf<String?>(null) }
 

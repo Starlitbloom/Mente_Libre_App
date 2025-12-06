@@ -1,6 +1,5 @@
 package data.repository.fakes
 
-import com.example.mente_libre_app.data.remote.api.UserProfileApi
 import com.example.mente_libre_app.data.remote.dto.*
 
 class FakeProfileApi : UserProfileApi {

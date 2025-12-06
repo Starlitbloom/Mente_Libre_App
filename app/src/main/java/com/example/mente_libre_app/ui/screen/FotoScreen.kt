@@ -48,7 +48,8 @@ fun FotoScreen(
     usuarioViewModel: UsuarioViewModel,
     onNext: () -> Unit,
     isEditingProfile: Boolean = false
-) {
+)
+ {
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
     val serifSemiBold = FontFamily(Font(R.font.source_serif_pro_semibold))
@@ -114,7 +115,6 @@ fun FotoScreen(
             }
         }
     }
-
 
     // Launcher para pedir permiso de cámara
     val permisoCamaraLauncher = rememberLauncherForActivityResult(

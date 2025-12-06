@@ -3,7 +3,7 @@ package com.example.mente_libre_app.ui.viewmodel
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mente_libre_app.data.remote.dto.RegisterRequestDto
+import com.example.mente_libre_app.data.remote.dto.auth.RegisterRequestDto
 import com.example.mente_libre_app.data.repository.UserRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -39,50 +39,42 @@ data class RegisterUiState(
 )
 
 class AuthViewModel(
-    private val repository: UserRepository,
-    private val context: Context // ya no usamos preferences
+    private val repository: UserRepository
 ) : ViewModel() {
 
     private val _login = MutableStateFlow(LoginUiState())
-    val login: StateFlow<LoginUiState> = _login
+    val login = _login.asStateFlow()
 
     private val _register = MutableStateFlow(RegisterUiState())
-    val register: StateFlow<RegisterUiState> = _register
+    val register = _register.asStateFlow()
 
-    // --- Usuario logueado ---
     private val _currentUserId = MutableStateFlow<Long?>(null)
-    val currentUserId: StateFlow<Long?> = _currentUserId
+    val currentUserId = _currentUserId.asStateFlow()
 
-    // isLoggedIn derivado de currentUserId
-    val isLoggedIn: StateFlow<Boolean> = _currentUserId
+    val isLoggedIn = currentUserId
         .map { it != null }
         .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     init {
         viewModelScope.launch {
-            _currentUserId.value = repository.getCurrentUserId()
+            _currentUserId.value = repository.getUserId()
         }
     }
 
-    fun setCurrentUserId(id: Long) {
-        _currentUserId.value = id
+    // ---- LOGIN ----
+    fun onLoginEmailChange(v: String) {
+        _login.update { it.copy(email = v) }
+        recomputeLogin()
     }
 
-    // --- LOGIN ---
-    fun onLoginEmailChange(value: String) {
-        _login.update { it.copy(email = value) }
-        recomputeLoginCanSubmit()
+    fun onLoginPassChange(v: String) {
+        _login.update { it.copy(pass = v) }
+        recomputeLogin()
     }
 
-    fun onLoginPassChange(value: String) {
-        _login.update { it.copy(pass = value) }
-        recomputeLoginCanSubmit()
-    }
-
-    private fun recomputeLoginCanSubmit() {
+    private fun recomputeLogin() {
         val s = _login.value
-        val can = s.email.isNotBlank() && s.pass.isNotBlank()
-        _login.update { it.copy(canSubmit = can) }
+        _login.update { it.copy(canSubmit = s.email.isNotBlank() && s.pass.isNotBlank()) }
     }
 
     fun submitLogin() {
@@ -90,75 +82,82 @@ class AuthViewModel(
         if (!s.canSubmit || s.isSubmitting) return
 
         viewModelScope.launch {
-            _login.update { it.copy(isSubmitting = true, errorMsg = null, success = false) }
-            val result = repository.login(s.email.trim(), s.pass)
+            _login.update { it.copy(isSubmitting = true, errorMsg = null) }
+
+            val result = repository.login(s.email, s.pass)
             result.fold(
-                onSuccess = { response ->
-                    _currentUserId.value = response.userId
-                    _login.update { it.copy(isSubmitting = false, success = true, errorMsg = null) }
+                onSuccess = {
+                    _currentUserId.value = it.userId
+                    _login.update { l -> l.copy(isSubmitting = false, success = true) }
                 },
                 onFailure = { e ->
-                    _login.update { it.copy(isSubmitting = false, success = false, errorMsg = e.message ?: "Error de login") }
+                    _login.update { l -> l.copy(isSubmitting = false, errorMsg = e.message) }
                 }
             )
         }
     }
 
-    fun clearLoginResult() {
-        _login.update { it.copy(success = false, errorMsg = null) }
+    // ---- REGISTER INPUTS ----
+    fun onNameChange(v: String) {
+        _register.update { it.copy(name = v) }
+        recomputeRegister()
     }
 
-    // --- REGISTER ---
-    fun onNameChange(value: String) {
-        val filtered = value.filter { it.isLetter() || it.isWhitespace() }
-        _register.update { it.copy(name = filtered) }
-        recomputeRegisterCanSubmit()
+    fun onPhoneChange(v: String) {
+        _register.update { it.copy(phone = v.filter { it.isDigit() }) }
+        recomputeRegister()
     }
 
-    fun onEmailChange(value: String) {
-        _register.update { it.copy(email = value) }
-        recomputeRegisterCanSubmit()
+    fun onEmailChange(v: String) {
+        _register.update { it.copy(email = v) }
+        recomputeRegister()
     }
 
-    fun onPhoneChange(value: String) {
-        val digitsOnly = value.filter { it.isDigit() }
-        _register.update { it.copy(phone = digitsOnly) }
-        recomputeRegisterCanSubmit()
+    fun onPassChange(v: String) {
+        _register.update { it.copy(pass = v) }
+        recomputeRegister()
     }
 
-    fun onPassChange(value: String) {
-        _register.update { it.copy(pass = value) }
-        recomputeRegisterCanSubmit()
+    fun onConfirmChange(v: String) {
+        _register.update { it.copy(confirm = v) }
+        recomputeRegister()
     }
 
-    fun onConfirmChange(value: String) {
-        _register.update { it.copy(confirm = value) }
-        recomputeRegisterCanSubmit()
-    }
-
-    private fun recomputeRegisterCanSubmit() {
+    // ---- RECOMPUTE REGISTER ----
+    private fun recomputeRegister() {
         val s = _register.value
-        val filled = listOf(s.name, s.email, s.phone, s.pass, s.confirm).all { it.isNotBlank() }
+
+        val filled = s.name.isNotBlank() &&
+                s.email.isNotBlank() &&
+                s.phone.isNotBlank() &&
+                s.pass.isNotBlank() &&
+                s.confirm.isNotBlank()
+
         _register.update { it.copy(canSubmit = filled) }
     }
 
+    // ---- REGISTER ----
     fun submitRegister() {
         val s = _register.value
         if (!s.canSubmit || s.isSubmitting) return
 
         viewModelScope.launch {
-            _register.update { it.copy(isSubmitting = true, errorMsg = null, success = false) }
-            val result = repository.register(
-                RegisterRequestDto(
-                    username = s.name.trim(),
-                    email = s.email.trim(),
-                    phone = s.phone.trim(),
-                    password = s.pass
-                )
+            _register.update { it.copy(isSubmitting = true, errorMsg = null) }
+
+            val request = RegisterRequestDto(
+                username = s.name,
+                email = s.email,
+                phone = s.phone,
+                password = s.pass
             )
-            result.fold(
-                onSuccess = { _register.update { it.copy(isSubmitting = false, success = true, errorMsg = null) } },
-                onFailure = { e -> _register.update { it.copy(isSubmitting = false, success = false, errorMsg = e.message) } }
+
+            repository.register(request).fold(
+                onSuccess = {
+                    _register.update { it.copy(isSubmitting = false, success = true) }
+                },
+                onFailure = { e ->
+                    _register.update { it.copy(isSubmitting = false, errorMsg = e.message) }
+                }
             )
         }
     }
@@ -167,9 +166,20 @@ class AuthViewModel(
         _register.update { it.copy(success = false, errorMsg = null) }
     }
 
-    // --- LOGOUT ---
-    fun logout() {
-        repository.logout()
-        _currentUserId.value = null
+    fun clearLoginResult() {
+        _login.update { it.copy(success = false, errorMsg = null) }
     }
+
+    fun logout() {
+        viewModelScope.launch {
+            repository.logout()
+            _currentUserId.value = null
+        }
+    }
+
 }
+
+
+
+
+

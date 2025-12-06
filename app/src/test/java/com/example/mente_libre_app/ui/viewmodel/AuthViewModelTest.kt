@@ -1,8 +1,6 @@
 package com.example.mente_libre_app.viewmodel
 
 import android.content.Context
-import com.example.mente_libre_app.data.remote.dto.LoginResponseDto
-import com.example.mente_libre_app.data.remote.dto.RegisterRequestDto
 import com.example.mente_libre_app.data.repository.UserRepository
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModel
 import io.mockk.*
