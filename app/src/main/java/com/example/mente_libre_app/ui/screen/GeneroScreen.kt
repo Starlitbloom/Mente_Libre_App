@@ -30,31 +30,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mente_libre_app.R
-import com.example.mente_libre_app.data.remote.core.RetrofitInstance
-import com.example.mente_libre_app.data.repository.UserProfileRepository
 import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModel
-import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModelFactory
 
 @Composable
-fun GeneroScreen(onNext: () -> Unit) {
+fun GeneroScreen(
+    usuarioViewModel: UsuarioViewModel,
+    onNext: () -> Unit
+) {
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val context = LocalContext.current
-
-    val usuarioViewModel: UsuarioViewModel = viewModel(
-        factory = UsuarioViewModelFactory(context)
-    )
 
     var generoSeleccionado by remember { mutableStateOf<String?>(null) }
 
@@ -83,7 +76,7 @@ fun GeneroScreen(onNext: () -> Unit) {
 
             GeneroOption(
                 texto = "Soy Mujer",
-                icono = R.drawable.mujer, // agrega tus íconos
+                icono = R.drawable.mujer,
                 color = Color(0xFFFFD3B1),
                 seleccionado = generoSeleccionado == "Mujer",
                 onClick = { generoSeleccionado = "Mujer" }
@@ -111,32 +104,30 @@ fun GeneroScreen(onNext: () -> Unit) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            val baseColor = if (generoSeleccionado != null) Color(0xFFD94775) else Color(0xFF8688A8)
-            val pressedColor = Color(0xFF842C46)
-
             val animatedColor by animateColorAsState(
-                targetValue = if (isPressed) pressedColor else baseColor,
-                label = "buttonPressAnimation"
+                targetValue =
+                    if (isPressed) Color(0xFF842C46)
+                    else if (generoSeleccionado != null) Color(0xFFD94775)
+                    else Color(0xFF8688A8),
+                label = ""
             )
 
             Button(
                 onClick = {
                     generoSeleccionado?.let { genero ->
-                        // Actualizamos solo el género en el perfil temporal
-                        val generoId = when(genero) {
+                        val generoId = when (genero) {
                             "Mujer" -> 1L
                             "Hombre" -> 2L
-                            "Prefiero no decirlo" -> 3L
-                            else -> 0L
+                            else -> 3L
                         }
+
                         usuarioViewModel.setGeneroId(generoId, genero)
-                        onNext() // pasa a la siguiente pantalla
+                        onNext()
                     }
                 },
                 enabled = generoSeleccionado != null,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = animatedColor,
-                    disabledContainerColor = Color(0xFF8688A8)
+                    containerColor = animatedColor
                 ),
                 shape = RoundedCornerShape(50.dp),
                 interactionSource = interactionSource,
@@ -144,33 +135,23 @@ fun GeneroScreen(onNext: () -> Unit) {
                     .fillMaxWidth(0.8f)
                     .height(65.dp)
             ) {
-                Text(
-                    text = "Siguiente",
-                    color = Color.White,
-                    fontFamily = serifRegular,
-                    fontSize = 30.sp
-                )
+                Text("Siguiente", color = Color.White, fontFamily = serifRegular, fontSize = 30.sp)
             }
 
             Spacer(modifier = Modifier.height(26.dp))
 
-            // 🔹 Indicador de progreso
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50.dp))
-                    .background(Color(0xFFFFFFFF))
+                    .background(Color.White)
                     .padding(horizontal = 20.dp, vertical = 6.dp)
             ) {
-                Text(
-                    text = "2 de 5",
-                    color = Color(0xFFC5A3B3),
-                    fontFamily = serifRegular,
-                    fontSize = 16.sp
-                )
+                Text("2 de 5", color = Color(0xFFC5A3B3), fontFamily = serifRegular, fontSize = 16.sp)
             }
         }
     }
 }
+
 
 @Composable
 fun GeneroOption(

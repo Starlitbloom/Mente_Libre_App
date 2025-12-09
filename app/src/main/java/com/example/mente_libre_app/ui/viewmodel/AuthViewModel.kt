@@ -38,6 +38,13 @@ data class RegisterUiState(
     val errorMsg: String? = null
 )
 
+data class AuthUser(
+    val userId: Long,
+    val username: String,
+    val email: String,
+    val phone: String
+)
+
 class AuthViewModel(
     private val repository: UserRepository
 ) : ViewModel() {
@@ -88,12 +95,22 @@ class AuthViewModel(
             result.fold(
                 onSuccess = {
                     _currentUserId.value = it.userId
+
+                    // CARGAR DATOS DEL USUARIO AUTENTICADO
+                    _usuario.value = AuthUser(
+                        userId = it.userId,
+                        username = it.username,
+                        email = it.email,
+                        phone = it.phone
+                    )
+
                     _login.update { l -> l.copy(isSubmitting = false, success = true) }
                 },
                 onFailure = { e ->
                     _login.update { l -> l.copy(isSubmitting = false, errorMsg = e.message) }
                 }
             )
+
         }
     }
 
@@ -175,6 +192,21 @@ class AuthViewModel(
             repository.logout()
             _currentUserId.value = null
         }
+    }
+
+    private val _usuario = MutableStateFlow<AuthUser?>(null)
+    val usuario: StateFlow<AuthUser?> = _usuario
+
+    fun setUsername(v: String) {
+        _usuario.value = _usuario.value?.copy(username = v)
+    }
+
+    fun setEmail(v: String) {
+        _usuario.value = _usuario.value?.copy(email = v)
+    }
+
+    fun setPhone(v: String) {
+        _usuario.value = _usuario.value?.copy(phone = v)
     }
 
 }

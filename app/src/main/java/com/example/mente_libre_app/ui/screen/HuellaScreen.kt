@@ -31,15 +31,20 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.example.mente_libre_app.R
 import com.example.mente_libre_app.ui.theme.ButtonMagenta
+import com.example.mente_libre_app.ui.theme.LocalExtraColors
 import com.example.mente_libre_app.ui.theme.MainColor
 
 @Composable
 fun HuellaScreen(
-    activity: FragmentActivity, // Activity segura
+    activity: FragmentActivity,
     onVerificado: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
+
+    val colorScheme = MaterialTheme.colorScheme
+    val extra = LocalExtraColors.current
+
     val context = LocalContext.current
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
@@ -48,7 +53,6 @@ fun HuellaScreen(
     var mensajeError by remember { mutableStateOf<String?>(null) }
     var tieneHuella by remember { mutableStateOf(false) }
 
-    // Ejecutar autenticación al iniciar la pantalla
     LaunchedEffect(Unit) {
         tieneHuella = puedeUsarBiometria(context)
         if (tieneHuella) {
@@ -65,24 +69,27 @@ fun HuellaScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFFEAF4))
+            .background(colorScheme.background)   // FONDO DINÁMICO
             .padding(30.dp),
         contentAlignment = Alignment.Center
     ) {
+
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
+            // TÍTULO DINÁMICO
             Text(
                 text = "Huella Dactilar",
-                color = Color(0xFF842C46),
+                color = extra.title,
                 fontFamily = serifBold,
                 fontSize = 35.sp
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // DESCRIPCIÓN DINÁMICA
             Text(
                 text = "Escanea tu huella dactilar para que el ingreso a tu aplicación sea más seguro. Puedes desactivar esta opción luego en ajustes.",
-                color = Color(0xFF842C46),
+                color = colorScheme.onBackground,
                 fontFamily = serifRegular,
                 textAlign = TextAlign.Center,
                 fontSize = 20.sp,
@@ -91,20 +98,17 @@ fun HuellaScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
+            // ICONO HUELLAS DINÁMICO
             Icon(
                 painter = painterResource(id = R.drawable.huella_dactilar),
                 contentDescription = "Huella digital",
-                tint = Color(0xFF842C46),
+                tint = extra.title,
                 modifier = Modifier.size(150.dp)
             )
 
             Spacer(modifier = Modifier.height(40.dp))
-            Box(
-                modifier = Modifier
-                    .height(19.dp)   // espacio fijo
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) { mensajeError?.let {
+
+            mensajeError?.let {
                 Text(
                     text = it,
                     color = Color.Red,
@@ -113,18 +117,17 @@ fun HuellaScreen(
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                }
             }
 
-
+            Spacer(modifier = Modifier.height(30.dp))
 
             if (verificado) {
-                // Botón redondo tipo FloatingActionButton
-                Spacer(modifier = Modifier.height(33.dp))
+                // BOTÓN SIGUIENTE (dinámico)
                 Button(
                     onClick = { onVerificado() },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isPressed) MainColor else ButtonMagenta
+                        containerColor = extra.buttonAlt,
+                        contentColor = colorScheme.onPrimary
                     ),
                     shape = RoundedCornerShape(50.dp),
                     interactionSource = interactionSource,
@@ -132,28 +135,27 @@ fun HuellaScreen(
                         .fillMaxWidth(0.8f)
                         .height(65.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "Siguiente",
-                            color = Color.White,
-                            fontWeight = FontWeight.Normal,
-                            fontFamily = serifRegular,
-                            fontSize = 30.sp
-                        )
-                    }
+                    Text(
+                        text = "Siguiente",
+                        color = colorScheme.onPrimary,
+                        fontFamily = serifRegular,
+                        fontSize = 30.sp
+                    )
                 }
+
             } else {
                 if (tieneHuella) {
+
                     Text(
                         text = "Esperando autenticación...",
-                        color = Color(0xFF842C46),
+                        color = extra.title,
                         fontFamily = serifRegular,
                         fontSize = 15.sp
                     )
+
                     Spacer(modifier = Modifier.height(15.dp))
+
+                    // BOTÓN REINTENTAR (dinámico)
                     Button(
                         onClick = {
                             autenticarHuella(
@@ -163,7 +165,8 @@ fun HuellaScreen(
                             )
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isPressed) MainColor else ButtonMagenta
+                            containerColor = extra.buttonAlt,
+                            contentColor = colorScheme.onPrimary
                         ),
                         shape = RoundedCornerShape(50.dp),
                         interactionSource = interactionSource,
@@ -171,24 +174,25 @@ fun HuellaScreen(
                             .fillMaxWidth(0.8f)
                             .height(65.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = "Intentar de nuevo",
-                                color = Color.White,
-                                fontWeight = FontWeight.Normal,
-                                fontFamily = serifRegular,
-                                fontSize = 23.sp
-                            )
-                        }
+                        Text(
+                            text = "Intentar de nuevo",
+                            color = colorScheme.onPrimary,
+                            fontFamily = serifRegular,
+                            fontSize = 23.sp
+                        )
                     }
+
                 } else {
-                    Button(onClick = {
-                        val intent = Intent(Settings.ACTION_FINGERPRINT_ENROLL)
-                        context.startActivity(intent)
-                    }) {
+                    // Botón para registrar huella (tema neutro)
+                    Button(
+                        onClick = {
+                            val intent = Intent(Settings.ACTION_FINGERPRINT_ENROLL)
+                            context.startActivity(intent)
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = extra.buttonAlt
+                        )
+                    ) {
                         Text("Registrar huella en ajustes")
                     }
                 }

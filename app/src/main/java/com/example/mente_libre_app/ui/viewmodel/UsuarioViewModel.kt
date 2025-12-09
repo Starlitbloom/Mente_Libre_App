@@ -1,17 +1,21 @@
 package com.example.mente_libre_app.ui.viewmodel
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mente_libre_app.data.repository.UserProfileRepository
 import com.example.mente_libre_app.data.remote.dto.userprofile.CreateUserProfileRequestDto
 import com.example.mente_libre_app.data.remote.dto.userprofile.UpdateUserProfileRequestDto
 import com.example.mente_libre_app.data.remote.dto.userprofile.UserProfileResponseDto
+import com.example.mente_libre_app.data.repository.StorageRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class UsuarioViewModel(
-    private val repository: UserProfileRepository
+    private val repository: UserProfileRepository,
+    private val storageRepository: StorageRepository
 ) : ViewModel() {
 
     // --- UI STATE ---
@@ -126,4 +130,69 @@ class UsuarioViewModel(
     fun setTema(nuevoTema: String) {
         _tema.value = nuevoTema
     }
+
+    fun crearPerfilFinal(
+        userId: Long,
+        onResult: (Boolean) -> Unit
+    ) {
+        viewModelScope.launch {
+            _loading.value = true
+
+            try {
+                val dto = CreateUserProfileRequestDto(
+                    userId = userId,
+                    fotoPerfil = _fotoPerfil.value,
+                    fechaNacimiento = "",
+                    direccion = "",
+                    notificaciones = true,
+                    generoId = _generoId.value ?: 3,
+                    objetivo = _objetivo.value,
+                    tema = _tema.value,
+                    huellaActiva = true
+                )
+
+                val response = repository.createProfile(dto)
+                _perfil.value = response
+
+                onResult(true)
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Error al crear perfil"
+                onResult(false)
+            }
+
+            _loading.value = false
+        }
+    }
+
+    private val _direccion = MutableStateFlow("")
+    val direccion: StateFlow<String> = _direccion
+
+    fun setDireccion(nueva: String) {
+        _direccion.value = nueva
+    }
+
+    private val _cumpleanos = MutableStateFlow("")
+    val cumpleanos: StateFlow<String> = _cumpleanos
+
+    fun setCumpleanos(nueva: String) {
+        _cumpleanos.value = nueva
+    }
+
+    fun subirFoto(context: Context, uri: Uri, onResult: (String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val result = storageRepository.uploadProfileImage(context, uri)
+
+                val fullUrl = "http://10.0.2.2:8085" + result.url
+
+                _fotoPerfil.value = fullUrl
+
+                onResult(fullUrl)
+
+            } catch (e: Exception) {
+                onResult(null)
+            }
+        }
+    }
+
 }

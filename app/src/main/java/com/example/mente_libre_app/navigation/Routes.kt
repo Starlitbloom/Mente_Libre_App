@@ -31,4 +31,5 @@ sealed class Route(val path: String) {
     data object Crisis : Route("crisis")
     data object Estrategias : Route("estrategias")
     data object Salud : Route("salud")
+    data object Tema : Route("tema")
 }

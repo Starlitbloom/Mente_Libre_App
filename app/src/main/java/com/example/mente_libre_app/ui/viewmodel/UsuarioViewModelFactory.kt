@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.mente_libre_app.data.local.TokenDataStore
 import com.example.mente_libre_app.data.remote.core.RetrofitInstance
+import com.example.mente_libre_app.data.repository.StorageRepository
 import com.example.mente_libre_app.data.repository.UserProfileRepository
 
 class UsuarioViewModelFactory(
@@ -17,9 +18,10 @@ class UsuarioViewModelFactory(
             val tokenDataStore = TokenDataStore(context)
             val api = RetrofitInstance.createUserProfileApi(context)
             val repo = UserProfileRepository(api)
+            val storageRepo = StorageRepository(RetrofitInstance.createStorageApi(context))
 
             @Suppress("UNCHECKED_CAST")
-            return UsuarioViewModel(repo) as T
+            return UsuarioViewModel(repo, storageRepo) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -88,35 +88,42 @@ fun FotoScreen(
 
     // Launcher para seleccionar foto desde galería
     // Launcher galería
-    val galeriaLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            fotoPersonalizada = it
-            avatarSeleccionado = null // Desmarcamos cualquier avatar
-            coroutineScope.launch {
-                usuarioViewModel.setFotoPerfil(it.toString()) // <-- aquí
-            }
-        }
-    }
+     val galeriaLauncher = rememberLauncherForActivityResult(
+         contract = ActivityResultContracts.GetContent()
+     ) { uri: Uri? ->
+         uri?.let {
+             fotoPersonalizada = it
+             avatarSeleccionado = null
 
+             coroutineScope.launch {
+                 usuarioViewModel.subirFoto(context, it) { url ->
+                     if (url != null) {
+                         usuarioViewModel.setFotoPerfil(url)
+                     }
+                 }
+             }
+         }
+     }
 
-    // Launcher cámara
-    val camaraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture()
-    ) { success ->
-        if (success) {
-            uriFotoTemporal?.let {
-                fotoPersonalizada = it
-                avatarSeleccionado = null
-                coroutineScope.launch {
-                    usuarioViewModel.setFotoPerfil(it.toString()) // <-- aquí también
-                }
-            }
-        }
-    }
+     // Launcher cámara
+     val camaraLauncher = rememberLauncherForActivityResult(
+         contract = ActivityResultContracts.TakePicture()
+     ) { success ->
+         if (success && uriFotoTemporal != null) {
+             fotoPersonalizada = uriFotoTemporal
+             avatarSeleccionado = null
 
-    // Launcher para pedir permiso de cámara
+             coroutineScope.launch {
+                 usuarioViewModel.subirFoto(context, uriFotoTemporal!!) { url ->
+                     if (url != null) {
+                         usuarioViewModel.setFotoPerfil(url)
+                     }
+                 }
+             }
+         }
+     }
+
+     // Launcher para pedir permiso de cámara
     val permisoCamaraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->

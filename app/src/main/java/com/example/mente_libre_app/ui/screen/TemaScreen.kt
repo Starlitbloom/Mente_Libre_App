@@ -1,6 +1,5 @@
 package com.example.mente_libre_app.ui.screen
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,15 +15,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mente_libre_app.R
+import com.example.mente_libre_app.ui.theme.ExtraGreen
+import com.example.mente_libre_app.ui.theme.ExtraPink
+import com.example.mente_libre_app.ui.theme.ExtraPurple
+import com.example.mente_libre_app.ui.theme.LocalExtraColors
+import com.example.mente_libre_app.ui.theme.getColorSchemeForTheme
 import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModel
 
 @Composable
@@ -35,152 +36,159 @@ fun TemaScreen(
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
 
-    // lista de temas
+    // Lista de temas
     val temas = listOf("Rosado", "Morado", "Verde")
-
     var indexTema by remember { mutableStateOf(0) }
 
-    // gradientes según el tema
-    val gradiente = when (temas[indexTema]) {
-        "Rosado" -> Brush.verticalGradient(listOf(Color(0xFFE45088), Color(0xFFF9B4C6)))
-        "Morado" -> Brush.verticalGradient(listOf(Color(0xFF9D4EDD), Color(0xFFD4B3FF)))
-        "Verde" -> Brush.verticalGradient(
-            listOf(Color(0xFF4CAF50), Color(0xFFC8E6C9))
-        )
-        else -> Brush.verticalGradient(listOf(Color(0xFFE45088), Color(0xFFF9B4C6)))
+    // Tema en previsualización
+    val temaActual = temas[indexTema]
+
+    // Paleta Material 3
+    val colorScheme = getColorSchemeForTheme(temaActual)
+
+    // Paleta extendida
+    val extraColors = when (temaActual) {
+        "Morado" -> ExtraPurple
+        "Verde" -> ExtraGreen
+        else -> ExtraPink
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.secondary) // FONDO DINÁMICO
-            .padding(horizontal = 24.dp, vertical = 30.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    // Envuelve TODO en MaterialTheme + CompositionLocalProvider
+    CompositionLocalProvider(LocalExtraColors provides extraColors) {
 
-        Spacer(modifier = Modifier.height(20.dp))
+        MaterialTheme(colorScheme = colorScheme) {
 
-        Text(
-            text = "Temas",
-            color = MaterialTheme.colorScheme.onBackground,  // TEXTO DINÁMICO
-            fontFamily = serifBold,
-            fontSize = 34.sp
-        )
+            val extra = LocalExtraColors.current
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // CÍRCULO GRANDE CON BORDE DINÁMICO
-        Box(
-            modifier = Modifier
-                .size(180.dp)
-                .clip(CircleShape)
-                .background(gradiente)
-                .border(3.dp, MaterialTheme.colorScheme.tertiary, CircleShape)
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            text = "Elige el estilo que refleje tu energía.\nCada tema cambia los colores y la sensación de tu aplicación.",
-            color = MaterialTheme.colorScheme.onBackground, // TEXTO DINÁMICO
-            fontFamily = serifRegular,
-            fontSize = 17.sp,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(25.dp))
-
-        // Botones izquierda y derecha
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-
-            Box(
+            Column(
                 modifier = Modifier
-                    .size(65.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondary)    //
-                    .border(3.dp, MaterialTheme.colorScheme.tertiary, CircleShape) //
-                    .clickable {
-                        if (indexTema > 0) indexTema-- else indexTema = temas.size - 1
-                    },
-                contentAlignment = Alignment.Center
+                    .fillMaxSize()
+                    .background(colorScheme.background)
+                    .padding(horizontal = 24.dp, vertical = 30.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // TÍTULO
                 Text(
-                    text = "<",
-                    color = MaterialTheme.colorScheme.tertiary, //
+                    text = "Temas",
+                    color = extra.title,
                     fontFamily = serifBold,
-                    fontSize = 30.sp
+                    fontSize = 34.sp
                 )
-            }
 
-            Text(
-                text = temas[indexTema],
-                color = MaterialTheme.colorScheme.onBackground,  //
-                fontFamily = serifBold,
-                fontSize = 24.sp
-            )
+                Spacer(modifier = Modifier.height(20.dp))
 
-            Box(
-                modifier = Modifier
-                    .size(65.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondary)    //
-                    .border(3.dp, MaterialTheme.colorScheme.tertiary, CircleShape) //
-                    .clickable {
-                        if (indexTema < temas.size - 1) indexTema++ else indexTema = 0
+                // CÍRCULO CON DEGRADÉ Y BORDE EXACTO
+                val gradiente = Brush.verticalGradient(
+                    listOf(extra.gradientTop, extra.gradientBottom)
+                )
+
+                Box(
+                    modifier = Modifier
+                        .size(180.dp)
+                        .clip(CircleShape)
+                        .background(gradiente)
+                        .border(3.dp, extra.circleBorder, CircleShape)
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Text(
+                    text = "Elige el estilo que refleje tu energía.\nCada tema cambia los colores.",
+                    color = colorScheme.onBackground,
+                    fontFamily = serifRegular,
+                    fontSize = 17.sp,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(25.dp))
+
+                // Flechas + nombre de tema
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    // IZQUIERDA
+                    Box(
+                        modifier = Modifier
+                            .size(65.dp)
+                            .clip(CircleShape)
+                            .background(extra.arrowBackground)   // Ahora sí el fondo correcto
+                            .border(3.dp, extra.arrowBorder, CircleShape)
+                            .clickable {
+                                indexTema = if (indexTema > 0) indexTema - 1 else temas.size - 1
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("<", color = extra.arrowColor, fontSize = 30.sp)
+                    }
+
+
+                    // NOMBRE
+                    Text(
+                        text = temaActual,
+                        color = extra.title,
+                        fontFamily = serifBold,
+                        fontSize = 24.sp
+                    )
+
+                    // DERECHA
+                    Box(
+                        modifier = Modifier
+                            .size(65.dp)
+                            .clip(CircleShape)
+                            .background(extra.arrowBackground)
+                            .border(3.dp, extra.arrowBorder, CircleShape)
+                            .clickable {
+                                indexTema = if (indexTema > 0) indexTema - 1 else temas.size - 1
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(">", color = extra.arrowColor, fontSize = 30.sp)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // BOTÓN SIGUIENTE
+                Button(
+                    onClick = {
+                        usuarioViewModel.setTema(temaActual)
+                        onNext()
                     },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = ">",
-                    color = MaterialTheme.colorScheme.tertiary, //
-                    fontFamily = serifBold,
-                    fontSize = 30.sp
-                )
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = extra.buttonAlt,
+                        contentColor = colorScheme.onPrimary
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .height(65.dp),
+                    shape = RoundedCornerShape(50.dp)
+                ) {
+                    Text("Siguiente", fontFamily = serifRegular, fontSize = 30.sp)
+                }
+
+                Spacer(modifier = Modifier.height(25.dp))
+
+                // PROGRESO
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50.dp))
+                        .background(colorScheme.surface)
+                        .padding(horizontal = 20.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        "4 de 5",
+                        color = colorScheme.onSurface,
+                        fontFamily = serifRegular,
+                        fontSize = 15.sp
+                    )
+                }
             }
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Button(
-            onClick = {
-                usuarioViewModel.setTema(temas[indexTema])
-                onNext()
-            },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary, //
-                contentColor = MaterialTheme.colorScheme.onPrimary  //
-            ),
-            modifier = Modifier
-                .fillMaxWidth(0.8f)
-                .height(65.dp),
-            shape = RoundedCornerShape(50.dp)
-        ) {
-            Text(
-                text = "Siguiente",
-                fontFamily = serifRegular,
-                fontSize = 30.sp
-            )
-        }
-
-        Spacer(modifier = Modifier.height(25.dp))
-
-        // Indicador de progreso
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(50.dp))
-                .background(MaterialTheme.colorScheme.secondary) // 🔥
-                .padding(horizontal = 20.dp, vertical = 6.dp)
-        ) {
-            Text(
-                text = "4 de 5",
-                color = MaterialTheme.colorScheme.onBackground,  // 🔥
-                fontFamily = serifRegular,
-                fontSize = 15.sp
-            )
         }
     }
 }
