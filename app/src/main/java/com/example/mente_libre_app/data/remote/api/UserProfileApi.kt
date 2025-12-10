@@ -8,19 +8,20 @@ import retrofit2.http.*
 
 interface UserProfileApi {
 
-    @POST("user-profile")
+    @POST("/user/api/v1/user-profile")
     suspend fun createProfile(
         @Body body: CreateUserProfileRequestDto
     ): UserProfileResponseDto
 
-    @GET("user-profile/me")
+    @GET("/user/api/v1/user-profile/me")
     suspend fun getMyProfile(): UserProfileResponseDto
 
-    @PUT("user-profile/me")
+    @PUT("/user/api/v1/user-profile/me")
     suspend fun updateMyProfile(
         @Body body: UpdateUserProfileRequestDto
     ): UserProfileResponseDto
 
-    @DELETE("user-profile/me")
+    @DELETE("/user" +
+            "/api/v1/user-profile/me")
     suspend fun deleteMyProfile(): String
 }

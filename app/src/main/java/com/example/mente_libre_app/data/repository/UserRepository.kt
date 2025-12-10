@@ -74,4 +74,9 @@ class UserRepository(
     suspend fun getUserId(): Long? {
         return tokenDataStore.userIdFlow.first()
     }
+
+    suspend fun saveToken(token: String) {
+        tokenDataStore.saveToken(token)
+    }
+
 }

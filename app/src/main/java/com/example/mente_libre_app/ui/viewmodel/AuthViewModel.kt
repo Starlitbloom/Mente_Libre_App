@@ -94,9 +94,14 @@ class AuthViewModel(
             val result = repository.login(s.email, s.pass)
             result.fold(
                 onSuccess = {
+                    // GUARDAR TOKEN
+                    viewModelScope.launch {
+                        repository.saveToken(it.token)
+                    }
+
+                    // GUARDAR USER ID
                     _currentUserId.value = it.userId
 
-                    // CARGAR DATOS DEL USUARIO AUTENTICADO
                     _usuario.value = AuthUser(
                         userId = it.userId,
                         username = it.username,
@@ -106,6 +111,7 @@ class AuthViewModel(
 
                     _login.update { l -> l.copy(isSubmitting = false, success = true) }
                 },
+
                 onFailure = { e ->
                     _login.update { l -> l.copy(isSubmitting = false, errorMsg = e.message) }
                 }
@@ -169,8 +175,34 @@ class AuthViewModel(
             )
 
             repository.register(request).fold(
-                onSuccess = {
-                    _register.update { it.copy(isSubmitting = false, success = true) }
+                onSuccess = { user ->
+
+                    // Guardamos datos del usuario recién creado
+                    _usuario.value = AuthUser(
+                        userId = user.id,
+                        username = user.username,
+                        email = user.email,
+                        phone = user.phone
+                    )
+
+                    // Hacer login automático
+                    val loginResult = repository.login(user.email, s.pass)
+
+                    loginResult.fold(
+                        onSuccess = { loginData ->
+
+                            // Guardar token Y userId
+                            _currentUserId.value = loginData.userId
+
+                            _register.update { it.copy(isSubmitting = false, success = true) }
+                        },
+
+                        onFailure = { err ->
+                            _register.update {
+                                it.copy(isSubmitting = false, errorMsg = "Error al iniciar sesión automáticamente: ${err.message}")
+                            }
+                        }
+                    )
                 },
                 onFailure = { e ->
                     _register.update { it.copy(isSubmitting = false, errorMsg = e.message) }

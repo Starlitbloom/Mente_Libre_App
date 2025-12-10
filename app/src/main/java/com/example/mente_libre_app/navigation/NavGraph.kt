@@ -221,15 +221,21 @@ fun AppNavGraph(
                     HuellaScreen(
                         activity = activity,
                         onVerificado = {
-                            usuarioViewModel.crearPerfilFinal(
-                                userId = authViewModel.userId!!
-                            ) { success ->
-                                if (success) goMascota()
+                            val userId = authViewModel.usuario.value?.userId
+
+                            if (userId != null) {
+                                usuarioViewModel.crearPerfilFinal(userId) { success ->
+                                    if (success) {
+                                        navController.navigate(Route.Mascota.path) {
+                                            launchSingleTop = true
+                                        }
+                                    }
+                                }
                             }
                         }
                     )
-                }
 
+                }
 
                 composable(Route.Mascota.path) {
                     MascotaScreen(onNext = goSelector)

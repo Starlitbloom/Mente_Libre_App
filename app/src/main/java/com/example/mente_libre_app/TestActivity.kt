@@ -15,6 +15,7 @@ import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModelFactory
 // Pantallas a probar
 import com.example.mente_libre_app.ui.screen.TemaScreen
 import com.example.mente_libre_app.ui.screen.HuellaScreen
+import com.example.mente_libre_app.ui.screen.MascotaScreen   // ⬅️ IMPORTANTE
 
 class TestActivity : FragmentActivity() {
 
@@ -36,6 +37,7 @@ class TestActivity : FragmentActivity() {
                     startDestination = "tema"
                 ) {
 
+                    // 1️⃣ Tema
                     composable("tema") {
                         TemaScreen(
                             usuarioViewModel = usuarioViewModel,
@@ -43,10 +45,24 @@ class TestActivity : FragmentActivity() {
                         )
                     }
 
+                    // 2️⃣ Huella
                     composable("huella") {
                         HuellaScreen(
                             activity = this@TestActivity,
-                            onVerificado = { }
+                            onVerificado = {
+                                navController.navigate("mascota")
+                            }
+                        )
+                    }
+
+                    // 3️⃣ Mascota (3 segundos → vuelve atrás o sigue)
+                    composable("mascota") {
+                        MascotaScreen(
+                            onNext = {
+                                // Aquí tú decides a dónde ir después
+                                // por ahora solo vuelve al Tema para repetir el ciclo
+                                navController.popBackStack("tema", inclusive = false)
+                            }
                         )
                     }
                 }

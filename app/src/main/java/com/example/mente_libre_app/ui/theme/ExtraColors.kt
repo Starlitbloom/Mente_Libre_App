@@ -11,7 +11,8 @@ data class ExtraColors(
     val arrowBorder: Color,
     val arrowColor: Color,
     val buttonAlt: Color,
-    val arrowBackground: Color
+    val arrowBackground: Color,
+    val inBackground: Color
 )
 
 val LocalExtraColors = staticCompositionLocalOf<ExtraColors> {
@@ -26,7 +27,8 @@ val ExtraPink = ExtraColors(
     arrowBorder = Color(0xFFF95C1E),
     arrowColor = Color(0xFFF95C1E),
     buttonAlt = Color(0xFFD94775),
-    arrowBackground = Color(0xFFFFD3B1)
+    arrowBackground = Color(0xFFFFD3B1),
+    inBackground = Color(0xFFF4865A)
 )
 
 val ExtraPurple = ExtraColors(
@@ -37,7 +39,8 @@ val ExtraPurple = ExtraColors(
     arrowBorder = Color(0xFF0199E5),
     arrowColor = Color(0xFF0199E5),
     buttonAlt = Color(0xFF774BE4),
-    arrowBackground = Color(0xFFFFE6B1)
+    arrowBackground = Color(0xFFFFE6B1),
+    inBackground = Color(0xFF3BB9CA)
 )
 
 val ExtraGreen = ExtraColors(
@@ -48,5 +51,6 @@ val ExtraGreen = ExtraColors(
     arrowBorder = Color(0xFFE68907),
     arrowColor = Color(0xFFE68907),
     buttonAlt = Color(0xFF30B814),
-    arrowBackground = Color(0xFFFFEBC0)
+    arrowBackground = Color(0xFFFFEBC0),
+    inBackground = Color(0xFFC49C23)
 )

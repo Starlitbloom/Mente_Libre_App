@@ -16,26 +16,19 @@ import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModelFactory
 
 @OptIn(ExperimentalAnimationApi::class)
 class MainActivity : FragmentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
-
-            // btener ViewModel
             val usuarioViewModel: UsuarioViewModel =
                 viewModel(factory = UsuarioViewModelFactory(this))
 
-            // Observar el tema actual
             val temaSeleccionado by usuarioViewModel.tema.collectAsState()
 
-            // Pasarlo al Theme Global
             Mente_Libre_AppTheme(selectedTheme = temaSeleccionado) {
 
                 val navController = rememberAnimatedNavController()
 
-                // Navegación de la app
                 AppNavGraph(
                     navController = navController,
                     activity = this

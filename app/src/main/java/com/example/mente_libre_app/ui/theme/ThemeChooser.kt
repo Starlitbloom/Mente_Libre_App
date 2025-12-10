@@ -12,7 +12,7 @@ fun getColorSchemeForTheme(tema: String): ColorScheme {
             secondary = PinkPrimary,
             tertiary = BorderOrange,
             background = PinkPrimary,
-            onBackground = MainColor,
+            onBackground = MainColor
         )
 
         "Morado" -> lightColorScheme(

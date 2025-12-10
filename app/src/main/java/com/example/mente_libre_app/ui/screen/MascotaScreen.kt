@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -17,6 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mente_libre_app.R
+import com.example.mente_libre_app.ui.theme.LocalExtraColors
 import kotlinx.coroutines.delay
 
 @Composable
@@ -27,29 +29,28 @@ fun MascotaScreen(onNext: () -> Unit) {
         onNext()
     }
 
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp
-    val fontSize = (screenWidth * 0.110).sp // 8% del ancho de pantalla
+    // Paleta dinámica
+    val colorScheme = MaterialTheme.colorScheme
+    val extra = LocalExtraColors.current
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF4865A))
-            .padding(horizontal = 25.dp), // espacio a los lados
+            .background(extra.inBackground)   // FONDO DINÁMICO
+            .padding(horizontal = 25.dp),
         contentAlignment = Alignment.Center
     ) {
+
         Text(
             text = "¡Hola! ¡Bienvenido a\nMente Libre!\n \n" +
                     "Soy tu futura\ncompañera de bienestar\ny estoy aquí para\nayudarte en cada paso.\n \n" +
                     "Pero antes de continuar,\n¿qué te parecería elegir\n" +
                     "un compañero fiel que\nte acompañe en este\ncamino?",
             fontSize = 25.sp,
-            fontFamily = FontFamily(
-                Font(R.font.source_serif_pro_bold)
-            ),
+            fontFamily = FontFamily(Font(R.font.source_serif_pro_bold)),
             textAlign = TextAlign.Center,
-            lineHeight = 40.sp, // Más espacio entre líneas si se rompe
-            color = Color.White
+            lineHeight = 40.sp,
+            color = Color.White         // COLOR DE TEXTO DINÁMICO
         )
     }
 }

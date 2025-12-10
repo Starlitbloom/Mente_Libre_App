@@ -2,6 +2,7 @@ package com.example.mente_libre_app.ui.viewmodel
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mente_libre_app.data.repository.UserProfileRepository
@@ -156,8 +157,9 @@ class UsuarioViewModel(
 
                 onResult(true)
             } catch (e: Exception) {
+                Log.e("Perfil", "Error al crear perfil", e)   //<--- AGRÉGALO
                 _error.value = e.message ?: "Error al crear perfil"
-                onResult(false)
+                onResult(false) //<--- IMPORTANTE
             }
 
             _loading.value = false
@@ -183,13 +185,24 @@ class UsuarioViewModel(
             try {
                 val result = storageRepository.uploadProfileImage(context, uri)
 
-                val fullUrl = "http://10.0.2.2:8085" + result.url
+                // Detectar si la app corre en EMULADOR o CELULAR REAL
+                val baseUrl = if (android.os.Build.FINGERPRINT.contains("generic")) {
+                    // ✔ Emulador
+                    "http://10.0.2.2:8085"
+                } else {
+                    // ✔ Dispositivo físico (tu teléfono)
+                    "http://192.168.1.105:8085"   // <-- ESTA ES TU IP
+                }
+
+                val fullUrl = baseUrl + result.url
+
+                println("URL subida correctamente: $fullUrl")
 
                 _fotoPerfil.value = fullUrl
-
                 onResult(fullUrl)
 
             } catch (e: Exception) {
+                println("Error subiendo foto: ${e.message}")
                 onResult(null)
             }
         }
