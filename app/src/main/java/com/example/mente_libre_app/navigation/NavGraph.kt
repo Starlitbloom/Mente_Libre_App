@@ -1,5 +1,6 @@
 package com.example.mente_libre_app.navigation
 
+//import com.example.mente_libre_app.ui.screen.PerfilScreen
 import android.net.Uri
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
@@ -7,31 +8,21 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import androidx.navigation.activity
 import androidx.navigation.navArgument
-import com.example.mente_libre_app.data.local.database.AppDatabase
-import com.example.mente_libre_app.data.repository.UserRepository
-import com.example.mente_libre_app.ui.screen.AjustesScreen
 import com.example.mente_libre_app.ui.screen.AnimoScreen
 import com.example.mente_libre_app.ui.screen.Bienvenida1Screen
 import com.example.mente_libre_app.ui.screen.Bienvenida2Screen
@@ -52,7 +43,6 @@ import com.example.mente_libre_app.ui.screen.MascotaScreen
 import com.example.mente_libre_app.ui.screen.NombrarMascotaScreen
 import com.example.mente_libre_app.ui.screen.ObjetivoScreen
 import com.example.mente_libre_app.ui.screen.OrganizarseScreen
-//import com.example.mente_libre_app.ui.screen.PerfilScreen
 import com.example.mente_libre_app.ui.screen.PortadaScreen
 import com.example.mente_libre_app.ui.screen.SaludScreen
 import com.example.mente_libre_app.ui.screen.SelectorScreen
@@ -278,7 +268,14 @@ fun AppNavGraph(
                 }
 
                 composable(Route.Inicio.path) {
+
+                    val fotoPerfil = usuarioViewModel.fotoPerfil.collectAsState().value
+                    val nombre = authViewModel.usuario.collectAsState().value?.username
+
                     InicioScreen(
+                        navController = navController,
+                        fotoPerfil = fotoPerfil, // ESTA ES LA FOTO REAL O AVATAR
+                        nombreUsuario = nombre,
                         onNavChange = { index ->
                             when (index) {
                                 0 -> navController.navigate(Route.Inicio.path)
@@ -288,8 +285,23 @@ fun AppNavGraph(
                             }
                         },
                         onGoAnimo = goAnimo,
-                        navController = navController
                     )
+                }
+
+                composable(Route.Organizarse.path) {
+                    OrganizarseScreen(navController)
+                }
+
+                composable(Route.Crisis.path) {
+                    CrisisScreen(navController)
+                }
+
+                composable(Route.Estrategias.path) {
+                    EstrategiasScreen(navController)
+                }
+
+                composable(Route.Salud.path) {
+                    SaludScreen(navController)
                 }
 
                 composable(Route.Animo.path) {

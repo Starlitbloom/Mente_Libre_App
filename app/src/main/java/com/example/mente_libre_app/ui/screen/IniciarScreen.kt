@@ -310,10 +310,10 @@ fun CustomOutlinedTextField2(
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
     var isFocused by remember { mutableStateOf(false) }
 
-    // 👁️ control del "ver contraseña"
+    // control del "ver contraseña"
     var passwordVisible by remember { mutableStateOf(false) }
 
-    // 🎨 Animaciones de color según el foco
+    // Animaciones de color según el foco
     val borderColor by animateColorAsState(
         targetValue = if (isFocused) Color(0xFFF95C1E) else Color(0xFF8688A8)
     )
@@ -324,7 +324,7 @@ fun CustomOutlinedTextField2(
         targetValue = if (isFocused) Color.Black else Color(0xFF8688A8)
     )
 
-    // 👁️ color dinámico para el icono según foco
+    // color dinámico para el icono según foco
     val iconColor by animateColorAsState(
         targetValue = if (isFocused) Color(0xFFF95C1E) else Color(0xFF8688A8)
     )
@@ -392,7 +392,7 @@ fun CustomOutlinedTextField2(
         )
     )
 
-    // 🔴 Mensaje de error (si existe)
+    // Mensaje de error (si existe)
     Box(
         modifier = Modifier
             .height(19.dp)   // espacio fijo aunque no haya error
