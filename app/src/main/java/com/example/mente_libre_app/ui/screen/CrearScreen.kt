@@ -108,7 +108,7 @@ fun CrearScreenVm(
         onSubmit = authViewModel::submitRegister,
         onLoginClick = onLoginClick
     )
-    // 🔹 Mostramos el mensaje de éxito con blur
+    // Mostramos el mensaje de éxito con blur
     if (showSuccessDialog) {
         SuccessDialog(
             onDismiss = {
@@ -356,10 +356,10 @@ fun CustomOutlinedTextField(
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
     var isFocused by remember { mutableStateOf(false) }
 
-    // 👁️ control del "ver contraseña"
+    // control del "ver contraseña"
     var passwordVisible by remember { mutableStateOf(false) }
 
-    // 🎨 Animaciones de color según el foco
+    // Animaciones de color según el foco
     val borderColor by animateColorAsState(
         targetValue = if (isFocused) Color(0xFFF95C1E) else Color(0xFF8688A8)
     )
@@ -370,7 +370,7 @@ fun CustomOutlinedTextField(
         targetValue = if (isFocused) Color.Black else Color(0xFF8688A8)
     )
 
-    // 👁️ color dinámico para el icono según foco
+    // color dinámico para el icono según foco
     val iconColor by animateColorAsState(
         targetValue = if (isFocused) Color(0xFFF95C1E) else Color(0xFF8688A8)
     )
@@ -398,7 +398,7 @@ fun CustomOutlinedTextField(
             visualTransformation = if (isPassword && !passwordVisible)
                 PasswordVisualTransformation() else VisualTransformation.None,
 
-            // 👁️ Solo mostrar ícono si el campo NO está vacío
+            // Solo mostrar ícono si el campo NO está vacío
             trailingIcon = {
                 if (isPassword && value.isNotEmpty()) {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -407,7 +407,7 @@ fun CustomOutlinedTextField(
                                 Icons.Default.VisibilityOff else Icons.Default.Visibility,
                             contentDescription = if (passwordVisible)
                                 "Ocultar contraseña" else "Ver contraseña",
-                            tint = iconColor // 👈 cambia según foco (naranjo o gris)
+                            tint = iconColor // cambia según foco (naranjo o gris)
                         )
                     }
                 }
@@ -440,7 +440,7 @@ fun CustomOutlinedTextField(
             )
         )
 
-        // 🔴 Mensaje de error (si existe)
+        // Mensaje de error (si existe)
         Box(
             modifier = Modifier
                 .height(19.dp)
@@ -464,7 +464,7 @@ fun SuccessDialog(onDismiss: () -> Unit) {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        // 🔹 Fondo semitransparente + desenfoque
+        // Fondo semitransparente + desenfoque
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -472,7 +472,7 @@ fun SuccessDialog(onDismiss: () -> Unit) {
                 .background(Color.Black.copy(alpha = 0.5f))
         )
 
-        // 🔹 Contenido nítido
+        // Contenido nítido
         Card(
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEAF4)),
@@ -515,7 +515,7 @@ fun SuccessDialog(onDismiss: () -> Unit) {
             }
         }
 
-        // 🔹 Cierra automáticamente tras 2 segundos
+        // Cierra automáticamente tras 2 segundos
         LaunchedEffect(Unit) {
             kotlinx.coroutines.delay(3000)
             onDismiss()

@@ -56,7 +56,6 @@ private val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
 
 data class Tip(val titulo: String, val imagen: Int)
 
-
 @Composable
 fun InicioScreen(
     navController: NavHostController,
@@ -134,13 +133,13 @@ fun InicioScreen(
             ) {
                 CardScore(
                     score = 90,
-                    onClick = {},
+                    onClick = { navController.navigate(Route.Puntaje.path) },
                     modifier = Modifier.weight(1f).height(156.dp)
                 )
                 CardMood(
                     mood = "Feliz",
                     values = listOf(2f, 5f, 3.5f, 6f, 4.5f, 7f),
-                    onClick = onGoAnimo,
+                    onClick = { navController.navigate(Route.Animo.path) },
                     modifier = Modifier.weight(1f).height(156.dp)
                 )
             }
@@ -199,7 +198,7 @@ private fun TipsSection(tips: List<Tip>, navController: NavHostController) {
                 "Cómo Organizarse Mejor" -> { { navController.navigate(Route.Organizarse.path) } }
                 "¿Qué hacer en una crisis emocional?" -> { { navController.navigate(Route.Crisis.path) } }
                 "Estrategias para el Autocuidado" -> { { navController.navigate(Route.Estrategias.path) } }
-                else -> { {} } // 🔹 lambda vacía
+                else -> { {} } // lambda vacía
             }
             TipCardHorizontal(tip, onClick)
         }
@@ -215,7 +214,7 @@ private fun TipCardHorizontal(tip: Tip, onClick: () -> Unit) {
         modifier = Modifier
             .width(300.dp)
             .height(120.dp)
-            .clickable { onClick() } // 🔹 clic
+            .clickable { onClick() } // clic
     ) {
         Row(
             modifier = Modifier

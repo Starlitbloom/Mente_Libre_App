@@ -24,4 +24,6 @@ class UserProfileRepository(
     suspend fun deleteMyProfile(): String {
         return api.deleteMyProfile()
     }
+
+
 }

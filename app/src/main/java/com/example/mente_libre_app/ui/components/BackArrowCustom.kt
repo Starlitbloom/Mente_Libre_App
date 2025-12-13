@@ -12,8 +12,8 @@ import androidx.navigation.NavController
 fun BackArrowCustom(
     modifier: Modifier = Modifier,
     color: Color = Color.White,
-    stroke: Float = 12f,          // 🔥 Grosor de la flecha
-    size: Int = 42,               // 🔥 Tamaño total del canvas
+    stroke: Float = 12f,          // Grosor de la flecha
+    size: Int = 42,               // Tamaño total del canvas
     navController: NavController
 ) {
     Canvas(

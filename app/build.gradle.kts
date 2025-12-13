@@ -99,6 +99,8 @@ dependencies {
     //librerias para el manejo de reglas de test
     androidTestImplementation("androidx.test:core-ktx:1.5.0")
     androidTestImplementation("androidx.test:rules:1.5.0")
+    implementation("com.google.android.libraries.places:places:3.5.0")
+
 }
 
 configurations.all {

@@ -1,6 +1,5 @@
 package com.example.mente_libre_app.navigation
 
-//import com.example.mente_libre_app.ui.screen.PerfilScreen
 import android.net.Uri
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
@@ -24,6 +23,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.example.mente_libre_app.ui.screen.AnimoScreen
+import com.example.mente_libre_app.ui.screen.AjustesScreen
 import com.example.mente_libre_app.ui.screen.Bienvenida1Screen
 import com.example.mente_libre_app.ui.screen.Bienvenida2Screen
 import com.example.mente_libre_app.ui.screen.Bienvenida3Screen
@@ -32,6 +32,7 @@ import com.example.mente_libre_app.ui.screen.BienvenidaScreen
 import com.example.mente_libre_app.ui.screen.CargandoScreen
 import com.example.mente_libre_app.ui.screen.CrearScreenVm
 import com.example.mente_libre_app.ui.screen.CrisisScreen
+import com.example.mente_libre_app.ui.screen.EliminarCuentaScreen
 import com.example.mente_libre_app.ui.screen.EstrategiasScreen
 import com.example.mente_libre_app.ui.screen.FotoScreen
 import com.example.mente_libre_app.ui.screen.FraseScreen
@@ -43,8 +44,12 @@ import com.example.mente_libre_app.ui.screen.MascotaScreen
 import com.example.mente_libre_app.ui.screen.NombrarMascotaScreen
 import com.example.mente_libre_app.ui.screen.ObjetivoScreen
 import com.example.mente_libre_app.ui.screen.OrganizarseScreen
+import com.example.mente_libre_app.ui.screen.PerfilScreen
 import com.example.mente_libre_app.ui.screen.PortadaScreen
+import com.example.mente_libre_app.ui.screen.PuntajeScreen
 import com.example.mente_libre_app.ui.screen.SaludScreen
+import com.example.mente_libre_app.ui.screen.SeguridadScreen
+import com.example.mente_libre_app.ui.screen.SeleccionarUbicacionScreen
 import com.example.mente_libre_app.ui.screen.SelectorScreen
 import com.example.mente_libre_app.ui.screen.TemaScreen
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModel
@@ -66,7 +71,7 @@ fun AppNavGraph(
     val scope = rememberCoroutineScope()
 
     // -------------------------
-    // 1️⃣ ViewModels Globales
+    // ViewModels Globales
     // -------------------------
     val context = LocalContext.current
 
@@ -133,7 +138,7 @@ fun AppNavGraph(
             ) {
 
                 // -------------------------
-                //  🔵 PANTALLAS DE FLUJO
+                //  PANTALLAS DE FLUJO
                 // -------------------------
 
                 composable(Route.Portada.path) {
@@ -193,17 +198,49 @@ fun AppNavGraph(
                     )
                 }
 
-                composable(Route.Foto.path) {
+                // Ruta para edición: foto?edit=true
+                composable(
+                    route = "foto?edit={edit}",
+                    arguments = listOf(
+                        navArgument("edit") {
+                            defaultValue = "false"
+                        }
+                    )
+                ) { backStackEntry ->
+
+                    val isEditing = backStackEntry.arguments?.getString("edit") == "true"
+
                     FotoScreen(
                         usuarioViewModel = usuarioViewModel,
-                        onNext = goTema
+                        authViewModel = authViewModel,
+                        onNext = {
+                            if (isEditing) {
+                                navController.popBackStack()   // Vuelve a PerfilScreen
+                            } else {
+                                goTema()   // Flujo normal del registro
+                            }
+                        },
+                        isEditingProfile = isEditing
                     )
                 }
 
-                composable(Route.Tema.path) {
+                composable(
+                    route = "tema?edit={edit}",
+                    arguments = listOf(navArgument("edit") { defaultValue = "false" })
+                ) { backStackEntry ->
+
+                    val isEditing = backStackEntry.arguments?.getString("edit") == "true"
+
                     TemaScreen(
                         usuarioViewModel = usuarioViewModel,
-                        onNext = goHuella
+                        isEditing = isEditing,
+                        onNext = {
+                            if (isEditing) {
+                                navController.popBackStack()   // vuelve a Ajustes
+                            } else {
+                                goHuella()                     // sigue flujo normal
+                            }
+                        }
                     )
                 }
 
@@ -256,9 +293,6 @@ fun AppNavGraph(
                     )
                 }
 
-                // -------------------------
-                // 🔵 Login & Home
-                // -------------------------
                 composable(Route.Iniciar.path) {
                     IniciarScreenVm(
                         authViewModel = authViewModel,
@@ -288,6 +322,12 @@ fun AppNavGraph(
                     )
                 }
 
+                composable(Route.Puntaje.path) {
+                    PuntajeScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
                 composable(Route.Organizarse.path) {
                     OrganizarseScreen(navController)
                 }
@@ -305,20 +345,62 @@ fun AppNavGraph(
                 }
 
                 composable(Route.Animo.path) {
-                    AnimoScreen(onBack = { navController.popBackStack() })
+                    AnimoScreen(
+                        onBack = { navController.popBackStack() }
+                    )
                 }
 
-//                composable(Route.Ajustes.path) {
-//                    AjustesScreen(
-//                        onItemSelected = { selectedItem ->
-//                            when (selectedItem) {
-//                                "inicio" -> navController.navigate(Route.Inicio.path)
-//                                "perfil" -> navController.navigate(Route.Perfil.path)
-//                            }
-//                        },
-//                        onPerfilClick = { navController.navigate(Route.Perfil.path) }
-//                    )
-//                }
+                composable(Route.Ajustes.path) {
+                    AjustesScreen(
+                        onItemSelected = { selectedItem ->
+                            when (selectedItem) {
+                                "inicio" -> navController.navigate(Route.Inicio.path)
+                                "perfil" -> navController.navigate(Route.Perfil.path)
+                            }
+                        },
+                        onPerfilClick = { navController.navigate(Route.Perfil.path) },
+                        onSeguridadClick = { navController.navigate(Route.Seguridad.path) },
+                        onNotificacionesClick = { /* Navegar a Notificaciones */ },
+                        onTemaClick = { navController.navigate("tema?edit=true") },
+                        onEmergenciaClick = { /* Navegar a Emergencia */ },
+                        onSoporteClick = { /* Navegar a Soporte */ },
+                        onSugerenciasClick = { /* Navegar a Sugerencias */ },
+                        onCerrarSesion = { /* Lógica para cerrar sesión */ }
+                    )
+                }
+
+                composable(Route.Perfil.path) {
+                    PerfilScreen(
+                        navController = navController,
+                        usuarioViewModel = usuarioViewModel,
+                        authViewModel = authViewModel
+                    )
+                }
+
+                composable("eliminar_cuenta") {
+                    EliminarCuentaScreen(
+                        navController = navController,
+                        usuarioViewModel = usuarioViewModel,
+                        authViewModel = authViewModel
+                    )
+                }
+
+                composable("seleccionar_ubicacion") {
+                    SeleccionarUbicacionScreen(
+                        navController = navController,
+                        usuarioViewModel = usuarioViewModel
+                    )
+                }
+
+                composable("seguridad") {
+                    SeguridadScreen(
+                        navController = navController,
+                        usuarioViewModel = usuarioViewModel,
+                        authViewModel = authViewModel
+                    )
+                }
+
+
             }
         }
     }

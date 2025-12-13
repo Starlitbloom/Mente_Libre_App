@@ -1,6 +1,7 @@
 package com.example.mente_libre_app.ui.screen
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -11,32 +12,49 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import android.content.Intent
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import coil.compose.rememberAsyncImagePainter
 import com.example.mente_libre_app.R
+import com.example.mente_libre_app.ui.theme.LocalExtraColors
+import com.example.mente_libre_app.ui.viewmodel.AuthViewModel
 import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
@@ -46,6 +64,7 @@ import java.util.Locale
 @Composable
 fun FotoScreen(
     usuarioViewModel: UsuarioViewModel,
+    authViewModel: AuthViewModel,
     onNext: () -> Unit,
     isEditingProfile: Boolean = false
 )
@@ -60,8 +79,11 @@ fun FotoScreen(
     val coroutineScope = rememberCoroutineScope()
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
+     val scheme = MaterialTheme.colorScheme
+     val extra = LocalExtraColors.current
 
-    val avatares = listOf(
+
+     val avatares = listOf(
         R.drawable.avatar_1,
         R.drawable.avatar_2,
         R.drawable.avatar_3,
@@ -96,10 +118,12 @@ fun FotoScreen(
              avatarSeleccionado = null
 
              coroutineScope.launch {
-                 usuarioViewModel.subirFoto(context, it) { url ->
-                     if (url != null) {
-                         usuarioViewModel.setFotoPerfil(url)
-                     }
+                 usuarioViewModel.subirFoto(
+                     context,
+                     it,    // URI correcta
+                     authViewModel.token.value!!  // TOKEN CORRECTO
+                 ) { url ->
+                     usuarioViewModel.setFotoPerfil(url ?: "")
                  }
              }
          }
@@ -114,10 +138,12 @@ fun FotoScreen(
              avatarSeleccionado = null
 
              coroutineScope.launch {
-                 usuarioViewModel.subirFoto(context, uriFotoTemporal!!) { url ->
-                     if (url != null) {
-                         usuarioViewModel.setFotoPerfil(url)
-                     }
+                 usuarioViewModel.subirFoto(
+                     context,
+                     uriFotoTemporal!!,
+                     authViewModel.token.value!!
+                 ) { url ->
+                     if (url != null) usuarioViewModel.setFotoPerfil(url)
                  }
              }
          }
@@ -135,7 +161,7 @@ fun FotoScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
-            .background(Color(0xFFFFEAF4))
+            .background(scheme.background)
             .padding(horizontal = 24.dp, vertical = 30.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top // mejor top si hay scroll
@@ -146,10 +172,10 @@ fun FotoScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Spacer(modifier = Modifier.height(40.dp))
-            // 🔹 Título superior
+            // Título superior
             Text(
                 text = "Ajustes de Perfil",
-                color = Color(0xFF842C46),
+                color = extra.title,
                 fontFamily = serifBold,
                 fontSize = 29.sp,
                 textAlign = TextAlign.Center
@@ -157,17 +183,17 @@ fun FotoScreen(
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // 🔹 Decorativo (gota)
+            // Decorativo (gota)
             Box(
                 modifier = Modifier
                     .size(12.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFF95C1E))
+                    .background(extra.arrowColor)
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 🔹 Imagen circular (avatar)
+            // Imagen circular (avatar)
             Image(
                 painter = if (fotoPersonalizada != null)
                     rememberAsyncImagePainter(fotoPersonalizada)
@@ -177,7 +203,7 @@ fun FotoScreen(
                 modifier = Modifier
                     .size(170.dp)
                     .clip(CircleShape)
-                    .border(4.dp, Color(0xFF842C46), CircleShape),
+                    .border(4.dp, color = extra.title, CircleShape),
                 contentScale = androidx.compose.ui.layout.ContentScale.Crop
             )
             Spacer(modifier = Modifier.height(18.dp))
@@ -195,7 +221,8 @@ fun FotoScreen(
                             .clip(CircleShape)
                             .border(
                                 width = if (avatarSeleccionado == index) 4.dp else 2.dp,
-                                color = if (avatarSeleccionado == index) Color(0xFF842C46) else Color.Gray,
+                                color = if (avatarSeleccionado == index) extra.title
+                                else Color.Gray,
                                 shape = CircleShape
                             )
                             .clickable {
@@ -212,20 +239,20 @@ fun FotoScreen(
             }
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 🔹 Decorativo inferior
+            // Decorativo inferior
             Box(
                 modifier = Modifier
                     .size(12.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFF95C1E))
+                    .background(extra.arrowColor)
             )
 
             Spacer(modifier = Modifier.height(25.dp))
 
-            // 🔹 Subtítulo
+            // Subtítulo
             Text(
                 text = "Selecciona tu avatar",
-                color = Color(0xFF842C46),
+                color = extra.title,
                 fontFamily = serifSemiBold,
                 fontSize = 22.sp,
                 textAlign = TextAlign.Center
@@ -233,10 +260,10 @@ fun FotoScreen(
 
             Spacer(modifier = Modifier.height(9.dp))
 
-            // 🔹 Texto descriptivo
+            // Texto descriptivo
             Text(
                 text = "Tenemos un conjunto personalizable de avatar. O puedes cargar tu propia imagen.",
-                color = Color(0xFF842C46),
+                color = extra.title,
                 fontFamily = serifRegular,
                 fontSize = 17.sp,
                 textAlign = TextAlign.Center
@@ -250,15 +277,15 @@ fun FotoScreen(
                 modifier = Modifier
                     .size(80.dp)
                     .clip(CircleShape)
-                    .border(3.dp, Color(0xFFF95C1E), CircleShape)
-                    .background(Color(0xFFFFD3B1))
+                    .border(3.dp, extra.arrowColor, CircleShape)
+                    .background(scheme.onPrimary)
                     .clickable {
-                        mostrarDialog = true // 👉 Abre la galería para elegir una imagen
+                        mostrarDialog = true // Abre la galería para elegir una imagen
                     }
             ) {
                 Text(
                     text = "+",
-                    color = Color(0xFFF95C1E),
+                    color = extra.arrowColor,
                     fontFamily = serifBold,
                     fontSize = 40.sp
                 )
@@ -287,9 +314,9 @@ fun FotoScreen(
             }
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 🔹 Botón “Siguiente”
-            val baseColor = Color(0xFFD94775)
-            val pressedColor = Color(0xFF842C46)
+            // Botón “Siguiente”
+            val baseColor = extra.buttonAlt
+            val pressedColor = extra.title
             val animatedColor by animateColorAsState(
                 targetValue = if (isPressed) pressedColor else baseColor,
                 label = "buttonPressAnimation"
@@ -299,9 +326,13 @@ fun FotoScreen(
             Button(
                 onClick = {
                     if (isEditingProfile) {
-                        onNext() // vuelve a PerfilScreen
+
+                        usuarioViewModel.actualizarFotoEnPerfil {
+                            onNext()  // vuelve a PerfilScreen
+                        }
+
                     } else {
-                        onNext() // sigue flujo normal
+                        onNext() // sigue flujo normal de registro
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = animatedColor),
@@ -319,18 +350,19 @@ fun FotoScreen(
                 )
             }
 
+
             Spacer(modifier = Modifier.height(26.dp))
 
-            // 🔹 Indicador de progreso
+            // Indicador de progreso
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50.dp))
-                    .background(Color(0xFFFFFFFF))
+                    .background(scheme.surface)
                     .padding(horizontal = 20.dp, vertical = 6.dp)
             ) {
                 Text(
                     text = "3 de 5",
-                    color = Color(0xFFC5A3B3),
+                    color = scheme.onSecondary,
                     fontFamily = serifRegular,
                     fontSize = 16.sp
                 )

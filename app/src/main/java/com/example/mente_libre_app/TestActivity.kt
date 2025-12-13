@@ -29,6 +29,7 @@ class TestActivity : FragmentActivity() {
             val foto = usuarioViewModel.fotoPerfil.collectAsState().value
             val nombreUsuario = "Usuario"
 
+
             Mente_Libre_AppTheme(selectedTheme = tema) {
 
                 NavHost(
@@ -36,18 +37,38 @@ class TestActivity : FragmentActivity() {
                     startDestination = "inicio"
                 ) {
 
-                    // 🟢 Inicio (pantalla que contiene las Cards)
+                    // Inicio (pantalla que contiene las Cards)
                     composable("inicio") {
                         InicioScreen(
                             navController = navController,
                             fotoPerfil = foto,
                             nombreUsuario = nombreUsuario,
-                            onNavChange = {},
+                            onNavChange = { index ->
+                                when (index) {
+                                    0 -> navController.navigate("inicio")
+                                    1 -> { }
+                                    2 -> navController.navigate("perfil")
+                                    3 -> navController.navigate("ajustes")
+                                }
+                            },
                             onGoAnimo = {}
+                        )
+
+                    }
+
+                    // Pantallas de las Cards
+                    composable("puntaje") {
+                        PuntajeScreen(
+                            onBack = { navController.popBackStack() }
                         )
                     }
 
-                    // 🔵 Pantallas de las Cards
+                    composable("animo") {
+                        AnimoScreen(
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+
                     composable("organizarse") {
                         OrganizarseScreen(navController)
                     }
@@ -63,6 +84,22 @@ class TestActivity : FragmentActivity() {
                     composable("salud") {
                         SaludScreen(navController)
                     }
+
+                    composable("ajustes") {
+                        AjustesScreen(
+                            selectedItem = "ajustes",
+                            onItemSelected = {},          // bottom bar
+                            onPerfilClick = { navController.navigate("perfil") },           // perfil
+                            onSeguridadClick = {},
+                            onNotificacionesClick = {},
+                            onTemaClick = {},
+                            onEmergenciaClick = {},
+                            onSoporteClick = {},
+                            onSugerenciasClick = {},
+                            onCerrarSesion = {}
+                        )
+                    }
+
                 }
             }
         }

@@ -21,10 +21,15 @@ class StorageRepository(private val api: StorageApi) {
         return file
     }
 
-    suspend fun uploadProfileImage(context: Context, uri: Uri): FileResponseDto {
+    suspend fun uploadProfileImage(context: Context, uri: Uri, token: String): FileResponseDto {
         val file = uriToFile(context, uri)
 
-        val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+        // 🔥 Obtener MIME real desde el URI
+        val mimeType = context.contentResolver.getType(uri) ?: "image/jpeg"
+
+        // 🔥 Usar MIME correcto, NO "image/*"
+        val requestFile = file.asRequestBody(mimeType.toMediaTypeOrNull())
+
         val multipart = MultipartBody.Part.createFormData(
             "file",
             file.name,
@@ -33,6 +38,9 @@ class StorageRepository(private val api: StorageApi) {
 
         val category = "PROFILE".toRequestBody("text/plain".toMediaTypeOrNull())
 
-        return api.uploadImage(multipart, category)
+        return api.uploadImage(
+            multipart,
+            category
+        )
     }
 }

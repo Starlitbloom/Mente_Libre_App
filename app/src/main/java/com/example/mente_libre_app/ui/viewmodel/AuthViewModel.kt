@@ -1,11 +1,16 @@
 package com.example.mente_libre_app.ui.viewmodel
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mente_libre_app.data.remote.dto.auth.RegisterRequestDto
 import com.example.mente_libre_app.data.repository.UserRepository
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class LoginUiState(
@@ -239,6 +244,15 @@ class AuthViewModel(
 
     fun setPhone(v: String) {
         _usuario.value = _usuario.value?.copy(phone = v)
+    }
+
+    private val _token = MutableStateFlow<String?>(null)
+    val token = _token.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            _token.value = repository.getToken()
+        }
     }
 
 }

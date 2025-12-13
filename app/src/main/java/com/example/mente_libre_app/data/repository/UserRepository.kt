@@ -2,7 +2,6 @@ package com.example.mente_libre_app.data.repository
 
 import com.example.mente_libre_app.data.local.TokenDataStore
 import com.example.mente_libre_app.data.remote.api.AuthApi
-import com.example.mente_libre_app.data.remote.core.RetrofitInstance
 import com.example.mente_libre_app.data.remote.dto.auth.LoginRequestDto
 import com.example.mente_libre_app.data.remote.dto.auth.LoginResponseDto
 import com.example.mente_libre_app.data.remote.dto.auth.RegisterRequestDto
@@ -79,4 +78,7 @@ class UserRepository(
         tokenDataStore.saveToken(token)
     }
 
+    suspend fun getToken(): String? {
+        return tokenDataStore.tokenFlow.first()
+    }
 }

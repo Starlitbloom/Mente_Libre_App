@@ -40,7 +40,7 @@ fun AjustesScreen(
     onPerfilClick: () -> Unit,
     onSeguridadClick: () -> Unit,
     onNotificacionesClick: () -> Unit,
-    onDispositivosClick: () -> Unit,
+    onTemaClick: () -> Unit,
     onEmergenciaClick: () -> Unit,
     onSoporteClick: () -> Unit,
     onSugerenciasClick: () -> Unit,
@@ -61,14 +61,14 @@ fun AjustesScreen(
 
         Column(
             modifier = Modifier
-                .padding(innerPadding) // ✅ Esto evita que el contenido quede detrás de la barra
+                .padding(innerPadding) // Esto evita que el contenido quede detrás de la barra
                 .fillMaxSize()
                 .background(Color(0xFFFFEAF4))
                 .padding(horizontal = 24.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(25.dp))
-            // 🔹 Título
+            // Título
             Text(
                 text = "Ajustes",
                 color = Color(0xFF842C46),
@@ -79,20 +79,20 @@ fun AjustesScreen(
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // 🔸 Primera sección
+            // Primera sección
             AjusteCard(
                 items = listOf(
                     AjusteItem("Mi Perfil", R.drawable.ic_perfil, onPerfilClick),
                     AjusteItem("Seguridad", R.drawable.ic_seguridad, onSeguridadClick),
                     AjusteItem("Notificaciones", R.drawable.ic_notificacion, onNotificacionesClick),
-                    AjusteItem("Disp. Conectados", R.drawable.ic_dispositivos, onDispositivosClick),
+                    AjusteItem("Temas", R.drawable.ic_dispositivos, onTemaClick),
                     AjusteItem("Contacto de Emergencia", R.drawable.ic_emergencia, onEmergenciaClick)
                 )
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 🔸 Segunda sección
+            // Segunda sección
             AjusteCard(
                 items = listOf(
                     AjusteItem("Soporte", R.drawable.ic_soporte, onSoporteClick),
@@ -122,7 +122,7 @@ fun AjustesScreen(
     }
 }
 
-// 🔸 Card con opciones
+// Card con opciones
 @Composable
 fun AjusteCard(items: List<AjusteItem>) {
     Card(
@@ -131,28 +131,37 @@ fun AjusteCard(items: List<AjusteItem>) {
         shape = RoundedCornerShape(20.dp)
     ) {
         Column(modifier = Modifier.padding(vertical = 8.dp)) {
+
+            val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
+            val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
+
             items.forEachIndexed { index, item ->
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { item.onClick() }
-                        .padding(horizontal = 20.dp, vertical = 10.dp),
+                        .padding(horizontal = 20.dp, vertical = 16.dp),  // <-- AUMENTADO
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+
                     Icon(
                         painter = painterResource(id = item.icon),
                         contentDescription = item.text,
                         tint = Color(0xFFC5A3B3),
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(32.dp)  // <-- AUMENTADO
                     )
-                    Spacer(modifier = Modifier.width(14.dp))
+
+                    Spacer(modifier = Modifier.width(18.dp)) // <-- AUMENTADO
+
                     Text(
                         text = item.text,
-                        fontSize = 18.sp,
+                        fontSize = 20.sp,                 // <-- AUMENTADO
                         color = Color(0xFF842C46),
-                        fontFamily = FontFamily(Font(R.font.source_serif_pro_regular))
+                        fontFamily = serifRegular
                     )
                 }
+
                 if (index != items.lastIndex) {
                     Divider(
                         color = Color(0xFF842C46),
@@ -165,7 +174,7 @@ fun AjusteCard(items: List<AjusteItem>) {
     }
 }
 
-// 🔸 Modelo de cada ítem
+// Modelo de cada ítem
 data class AjusteItem(
     val text: String,
     val icon: Int,

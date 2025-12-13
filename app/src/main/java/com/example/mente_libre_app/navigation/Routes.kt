@@ -20,15 +20,15 @@ sealed class Route(val path: String) {
     data object NombrarMascota : Route("nombrar_mascota/{mascota}")
     data object Iniciar : Route("iniciar")
     data object Inicio : Route("inicio")
+    data object Puntaje : Route("puntaje")
+    data object Animo : Route("animo")
     data object Organizarse : Route("organizarse")
     data object Crisis : Route("crisis")
     data object Estrategias : Route("estrategias")
     data object Salud : Route("salud")
     data object Ajustes : Route("ajustes")
     data object Perfil : Route("perfil")
-    data object Animo : Route("animo")
-    data object Puntaje : Route("puntaje")
-
+    data object Seguridad : Route("seguridad")
     data object Bitacora       : Route("bitacora")
     data object DiarioGratitud: Route("diario_gratitud")
 

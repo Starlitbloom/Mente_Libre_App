@@ -15,7 +15,8 @@ data class ExtraColors(
     val inBackground: Color,
     val glowOuter: Color,
     val glowInner: Color,
-    val glowBorder: Color
+    val glowBorder: Color,
+    val inactive: Color
 
 )
 
@@ -35,7 +36,8 @@ val ExtraPink = ExtraColors(
     inBackground = Color(0xFFF4865A),
     glowOuter = Color(0xFFF4865A),
     glowInner = Color(0xFFC5A3B3),
-    glowBorder = Color(0xFFD94775)
+    glowBorder = Color(0xFFD94775),
+    inactive = Color(0xFF8688A8)
 )
 
 val ExtraPurple = ExtraColors(
@@ -50,7 +52,8 @@ val ExtraPurple = ExtraColors(
     inBackground = Color(0xFF3BB9CA),
     glowOuter = Color(0xFFB07AFF),
     glowInner = Color(0xFFC69BFF),
-    glowBorder = Color(0xFF7D4DCC)
+    glowBorder = Color(0xFF7D4DCC),
+    inactive = Color(0xFF6F7296)
 )
 
 val ExtraGreen = ExtraColors(
@@ -65,5 +68,6 @@ val ExtraGreen = ExtraColors(
     inBackground = Color(0xFFC49C23),
     glowOuter = Color(0xFF9DB25D),
     glowInner = Color(0xFFC6DA8F),
-    glowBorder = Color(0xFF758C3A)
+    glowBorder = Color(0xFF758C3A),
+    inactive = Color(0xFF6F7296)
 )

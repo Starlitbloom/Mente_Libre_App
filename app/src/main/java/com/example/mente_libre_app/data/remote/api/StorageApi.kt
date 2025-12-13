@@ -6,11 +6,11 @@ import okhttp3.RequestBody
 import retrofit2.http.*
 
 interface StorageApi {
-
     @Multipart
     @POST("/api/v1/storage/upload")
     suspend fun uploadImage(
         @Part file: MultipartBody.Part,
         @Part("category") category: RequestBody
     ): FileResponseDto
+
 }

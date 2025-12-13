@@ -5,6 +5,7 @@ import com.example.mente_libre_app.data.local.TokenDataStore
 import com.example.mente_libre_app.data.remote.api.AuthApi
 import com.example.mente_libre_app.data.remote.api.StorageApi
 import com.example.mente_libre_app.data.remote.api.UserProfileApi
+import com.example.mente_libre_app.data.remote.api.VirtualPetApi
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -23,6 +24,9 @@ object RetrofitInstance {
             .build()
     }
 
+    // ------------------------------------------------------
+    // AUTH API
+    // ------------------------------------------------------
     fun createAuthApi(context: Context): AuthApi {
         val tokenStore = TokenDataStore(context)
 
@@ -41,6 +45,9 @@ object RetrofitInstance {
             .create(AuthApi::class.java)
     }
 
+    // ------------------------------------------------------
+    // USERPROFILE API
+    // ------------------------------------------------------
     fun createUserProfileApi(context: Context): UserProfileApi {
         val tokenStore = TokenDataStore(context)
 
@@ -60,16 +67,31 @@ object RetrofitInstance {
     }
 
     // ------------------------------------------------------
-    // STORAGE API (El nuevo)
+    // STORAGE API
     // ------------------------------------------------------
     fun createStorageApi(context: Context): StorageApi {
         val client = createClient(context)
 
         return Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:8080/")  // TU STORAGE SERVICE VA AQUÍ
+            .baseUrl("http://10.0.2.2:8080/")
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(StorageApi::class.java)
     }
+
+    // ------------------------------------------------------
+    // VIRTUALPET API
+    // ------------------------------------------------------
+    fun createVirtualPetApi(context: Context): VirtualPetApi {
+        val client = createClient(context)
+
+        return Retrofit.Builder()
+            .baseUrl("http://10.0.2.2:8080/")
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(VirtualPetApi::class.java)
+    }
+
 }

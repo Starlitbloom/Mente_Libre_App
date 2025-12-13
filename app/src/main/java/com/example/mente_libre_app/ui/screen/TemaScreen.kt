@@ -31,6 +31,7 @@ import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModel
 @Composable
 fun TemaScreen(
     usuarioViewModel: UsuarioViewModel,
+    isEditing: Boolean = false,
     onNext: () -> Unit
 ) {
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
@@ -158,7 +159,14 @@ fun TemaScreen(
                 Button(
                     onClick = {
                         usuarioViewModel.setTema(temaActual)
-                        onNext()
+
+                        if (isEditing) {
+                            // guardar → volver atrás
+                            onNext()
+                        } else {
+                            // flujo normal del registro
+                            onNext()
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = extra.buttonAlt,
@@ -169,7 +177,10 @@ fun TemaScreen(
                         .height(65.dp),
                     shape = RoundedCornerShape(50.dp)
                 ) {
-                    Text("Siguiente", fontFamily = serifRegular, fontSize = 30.sp)
+                    val textoBoton = if (isEditing) "Guardar" else "Siguiente"
+
+                    Text(text = textoBoton)
+
                 }
 
                 Spacer(modifier = Modifier.height(25.dp))

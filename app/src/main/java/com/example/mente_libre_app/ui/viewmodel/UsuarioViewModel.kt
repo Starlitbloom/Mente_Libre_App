@@ -1,6 +1,7 @@
 package com.example.mente_libre_app.ui.viewmodel
 
 import android.content.Context
+import android.location.Geocoder
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -53,12 +54,20 @@ class UsuarioViewModel(
                 val response = repository.getMyProfile()
                 _perfil.value = response
                 _error.value = null
+
+                // Sincronizar los valores que vienen del backend
+                _direccion.value = response.direccion ?: ""
+                _cumpleanos.value = response.fechaNacimiento ?: ""
+                _generoId.value = response.genero.id
+                _fotoPerfil.value = response.fotoPerfil
+
             } catch (e: Exception) {
                 _error.value = e.message ?: "Error al obtener perfil"
             }
             _loading.value = false
         }
     }
+
 
     // ============================================================
     // CREAR PERFIL
@@ -93,6 +102,9 @@ class UsuarioViewModel(
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = e.message ?: "Error al actualizar perfil"
+                onResult(false)
+            } catch (e: Exception) {
+                _error.value = e.message
                 onResult(false)
             }
 
@@ -157,7 +169,7 @@ class UsuarioViewModel(
 
                 onResult(true)
             } catch (e: Exception) {
-                Log.e("Perfil", "Error al crear perfil", e)   //<--- AGRÉGALO
+                Log.e("Perfil", "Error al crear perfil", e)
                 _error.value = e.message ?: "Error al crear perfil"
                 onResult(false) //<--- IMPORTANTE
             }
@@ -180,24 +192,16 @@ class UsuarioViewModel(
         _cumpleanos.value = nueva
     }
 
-    fun subirFoto(context: Context, uri: Uri, onResult: (String?) -> Unit) {
+    fun subirFoto(context: Context, uri: Uri, token: String, onResult: (String?) -> Unit) {
         viewModelScope.launch {
             try {
-                val result = storageRepository.uploadProfileImage(context, uri)
+                val result = storageRepository.uploadProfileImage(
+                    context,
+                    uri,
+                    token             // ESTE token es el correcto
+                )
 
-                // Detectar si la app corre en EMULADOR o CELULAR REAL
-                val baseUrl = if (android.os.Build.FINGERPRINT.contains("generic")) {
-                    // ✔ Emulador
-                    "http://10.0.2.2:8085"
-                } else {
-                    // ✔ Dispositivo físico (tu teléfono)
-                    "http://192.168.1.105:8085"   // <-- ESTA ES TU IP
-                }
-
-                val fullUrl = baseUrl + result.url
-
-                println("URL subida correctamente: $fullUrl")
-
+                val fullUrl = result.url
                 _fotoPerfil.value = fullUrl
                 onResult(fullUrl)
 
@@ -205,6 +209,46 @@ class UsuarioViewModel(
                 println("Error subiendo foto: ${e.message}")
                 onResult(null)
             }
+        }
+    }
+
+    fun actualizarFotoEnPerfil(onFinish: () -> Unit = {}) {
+        val nuevaFoto = _fotoPerfil.value ?: return
+
+        viewModelScope.launch {
+            try {
+                val dto = UpdateUserProfileRequestDto(
+                    direccion = _direccion.value,
+                    fechaNacimiento = _cumpleanos.value,
+                    notificaciones = _perfil.value?.notificaciones ?: true,
+                    generoId = _generoId.value ?: _perfil.value!!.genero.id,
+                    fotoPerfil = nuevaFoto
+                )
+
+                val updated = repository.updateMyProfile(dto)
+                _perfil.value = updated
+
+            } catch (e: Exception) {
+                println("ERROR ACTUALIZANDO FOTO: ${e.message}")
+            }
+
+            onFinish()
+        }
+    }
+
+    fun obtenerDireccionBonita(context: Context, lat: Double, lng: Double): String {
+        return try {
+            val geocoder = Geocoder(context)
+            val results = geocoder.getFromLocation(lat, lng, 1)
+
+            if (!results.isNullOrEmpty()) {
+                val dir = results[0]
+                "${dir.thoroughfare ?: ""} ${dir.subThoroughfare ?: ""}, ${dir.locality ?: ""}"
+            } else {
+                "$lat, $lng"
+            }
+        } catch (e: Exception) {
+            "$lat, $lng"
         }
     }
 
