@@ -6,32 +6,44 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.*
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.mente_libre_app.R
 import com.example.mente_libre_app.ui.components.BackArrowCustom
-import com.example.mente_libre_app.ui.viewmodel.AuthViewModel
 import com.example.mente_libre_app.ui.theme.LocalExtraColors
-import kotlinx.coroutines.launch
+import com.example.mente_libre_app.ui.viewmodel.AuthViewModel
 
 @Composable
 fun CambiarContrasenaScreen(
@@ -46,16 +58,18 @@ fun CambiarContrasenaScreen(
     var errorActual by remember { mutableStateOf("") }
     var errorNueva by remember { mutableStateOf("") }
     var errorConfirmar by remember { mutableStateOf("") }
+    val scheme = MaterialTheme.colorScheme
+    val extra = LocalExtraColors.current
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFFEAF4))
+            .background(scheme.background)
             .padding(24.dp)
     ) {
         BackArrowCustom(
             navController = navController,
-            color = Color(0xFF842C46),
+            color = extra.title,
             size = 62,
             stroke = 15f,
             modifier = Modifier.clickable { navController.popBackStack() }
@@ -66,7 +80,7 @@ fun CambiarContrasenaScreen(
         Text(
             text = "Cambiar Contraseña",
             fontSize = 30.sp,
-            color = Color(0xFF842C46),
+            color = extra.title,
             fontFamily = serifRegular
         )
 
@@ -99,13 +113,43 @@ fun CambiarContrasenaScreen(
 
         Spacer(Modifier.height(30.dp))
 
+
+        val context = LocalContext.current
         Button(
-            onClick = {},
+            onClick = {
+                errorActual = ""
+                errorNueva = ""
+                errorConfirmar = ""
+
+                if (actual.isBlank()) errorActual = "Ingresa tu contraseña actual"
+                if (nueva.isBlank()) errorNueva = "Ingresa la nueva contraseña"
+                if (confirmar.isBlank()) errorConfirmar = "Confirma la nueva contraseña"
+
+                if (nueva.length < 6) {
+                    errorNueva = "Debe tener al menos 6 caracteres"
+                }
+
+                if (nueva != confirmar) {
+                    errorConfirmar = "Las contraseñas no coinciden"
+                }
+
+                if (listOf(errorActual, errorNueva, errorConfirmar).any { it.isNotEmpty() }) return@Button
+
+                authViewModel.changePassword(actual, nueva, confirmar) { result ->
+                    if (result.success) {
+                        Toast.makeText(context, "Contraseña cambiada con éxito", Toast.LENGTH_LONG).show()
+                        navController.popBackStack()
+                    } else {
+                        // típico: contraseña actual incorrecta
+                        errorActual = result.errorMsg ?: "Error al cambiar contraseña"
+                    }
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp),
             shape = RoundedCornerShape(20.dp),
-            colors = ButtonDefaults.buttonColors(Color(0xFFDF5078))
+            colors = ButtonDefaults.buttonColors(extra.buttonAlt)
         ) {
             Text("Confirmar", color = Color.White, fontSize = 22.sp)
         }
@@ -125,16 +169,19 @@ fun PasswordField(
     var isFocused by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    val borderColor by animateColorAsState(if (isFocused) Color(0xFFF95C1E) else Color(0xFF8688A8))
+    val scheme = MaterialTheme.colorScheme
+    val extra = LocalExtraColors.current
+
+    val borderColor by animateColorAsState(if (isFocused) extra.arrowBorder else scheme.onSurface)
     val borderWidth by animateDpAsState(if (isFocused) 2.dp else 1.dp)
-    val textColor by animateColorAsState(if (isFocused) Color.Black else Color(0xFF8688A8))
-    val iconColor by animateColorAsState(if (isFocused) Color(0xFFF95C1E) else Color(0xFF8688A8))
-    val cursorColor = Color(0xFFF95C1E)
+    val textColor by animateColorAsState(if (isFocused) Color.Black else scheme.onSurface)
+    val iconColor by animateColorAsState(if (isFocused) extra.arrowBorder else scheme.onSurface)
+    val cursorColor = extra.arrowBorder
 
     Column {
         Text(
             text = label,
-            color = Color(0xFF842C46),
+            color = extra.title,
             fontFamily = serifBold,
             fontSize = 15.sp
         )
@@ -146,7 +193,7 @@ fun PasswordField(
             onValueChange = onValueChange,
             placeholder = {
                 if (!isFocused && value.isEmpty()) {
-                    Text("Ingresa tu contraseña", color = Color(0xFF8688A8))
+                    Text("Ingresa tu contraseña", color = scheme.onSurface)
                 }
             },
             visualTransformation = if (!passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
@@ -163,8 +210,8 @@ fun PasswordField(
                 }
             },
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFFFFD3B1),
-                unfocusedContainerColor = Color(0xFFFFD3B1),
+                focusedContainerColor = extra.arrowBackground,
+                unfocusedContainerColor = extra.arrowBackground,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 cursorColor = cursorColor

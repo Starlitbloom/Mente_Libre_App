@@ -2,6 +2,7 @@ package com.example.mente_libre_app.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mente_libre_app.data.remote.dto.auth.LoginResponseDto
 import com.example.mente_libre_app.data.remote.dto.auth.RegisterRequestDto
 import com.example.mente_libre_app.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,12 +44,6 @@ data class RegisterUiState(
     val errorMsg: String? = null
 )
 
-data class AuthUser(
-    val userId: Long,
-    val username: String,
-    val email: String,
-    val phone: String
-)
 
 class AuthViewModel(
     private val repository: UserRepository
@@ -62,6 +57,12 @@ class AuthViewModel(
 
     private val _currentUserId = MutableStateFlow<Long?>(null)
     val currentUserId = _currentUserId.asStateFlow()
+
+    private val _userRole = MutableStateFlow<String?>(null)
+    val userRole = _userRole.asStateFlow()
+
+    private val _usuario = MutableStateFlow<LoginResponseDto?>(null)
+    val usuario: StateFlow<LoginResponseDto?> = _usuario
 
     val isLoggedIn = currentUserId
         .map { it != null }
@@ -90,42 +91,31 @@ class AuthViewModel(
     }
 
     fun submitLogin() {
-        val s = _login.value
-        if (!s.canSubmit || s.isSubmitting) return
+        val data = _login.value
+        if (!data.canSubmit || data.isSubmitting) return
 
         viewModelScope.launch {
             _login.update { it.copy(isSubmitting = true, errorMsg = null) }
 
-            val result = repository.login(s.email, s.pass)
+            val result = repository.login(data.email, data.pass)
             result.fold(
-                onSuccess = {
-                    // GUARDAR TOKEN
-                    viewModelScope.launch {
-                        repository.saveToken(it.token)
-                    }
+                onSuccess = { response ->
 
-                    // GUARDAR USER ID
-                    _currentUserId.value = it.userId
+                    repository.saveToken(response.token)
 
-                    _usuario.value = AuthUser(
-                        userId = it.userId,
-                        username = it.username,
-                        email = it.email,
-                        phone = it.phone
-                    )
+                    _usuario.value = response
+                    _currentUserId.value = response.userId
+                    _userRole.value = response.role
 
-                    _login.update { l -> l.copy(isSubmitting = false, success = true) }
+                    _login.update { it.copy(isSubmitting = false, success = true) }
                 },
-
                 onFailure = { e ->
-                    _login.update { l -> l.copy(isSubmitting = false, errorMsg = e.message) }
+                    _login.update { it.copy(isSubmitting = false, errorMsg = e.message) }
                 }
             )
-
         }
     }
 
-    // ---- REGISTER INPUTS ----
     fun onNameChange(v: String) {
         _register.update { it.copy(name = v) }
         recomputeRegister()
@@ -182,23 +172,17 @@ class AuthViewModel(
             repository.register(request).fold(
                 onSuccess = { user ->
 
-                    // Guardamos datos del usuario recién creado
-                    _usuario.value = AuthUser(
-                        userId = user.id,
-                        username = user.username,
-                        email = user.email,
-                        phone = user.phone
-                    )
-
                     // Hacer login automático
                     val loginResult = repository.login(user.email, s.pass)
 
                     loginResult.fold(
                         onSuccess = { loginData ->
 
+                            _usuario.value = loginData
                             // Guardar token Y userId
                             _currentUserId.value = loginData.userId
-
+                            repository.saveToken(loginData.token)
+                            _userRole.value = loginData.role
                             _register.update { it.copy(isSubmitting = false, success = true) }
                         },
 
@@ -231,9 +215,6 @@ class AuthViewModel(
         }
     }
 
-    private val _usuario = MutableStateFlow<AuthUser?>(null)
-    val usuario: StateFlow<AuthUser?> = _usuario
-
     fun setUsername(v: String) {
         _usuario.value = _usuario.value?.copy(username = v)
     }
@@ -252,6 +233,53 @@ class AuthViewModel(
     init {
         viewModelScope.launch {
             _token.value = repository.getToken()
+        }
+    }
+
+    data class ChangePassResult(
+        val success: Boolean,
+        val errorMsg: String? = null
+    )
+
+    fun changePassword(
+        actual: String,
+        nueva: String,
+        confirmar: String,
+        onResult: (ChangePassResult) -> Unit
+    ) {
+        viewModelScope.launch {
+            if (nueva != confirmar) {
+                onResult(ChangePassResult(false, "Las contraseñas nuevas no coinciden"))
+                return@launch
+            }
+
+            try {
+                val result = repository.changePassword(actual, nueva)
+                result.fold(
+                    onSuccess = {
+                        onResult(ChangePassResult(true))
+                    },
+                    onFailure = { e ->
+                        onResult(ChangePassResult(false, e.message ?: "Error al cambiar contraseña"))
+                    }
+                )
+            } catch (e: Exception) {
+                onResult(ChangePassResult(false, e.message ?: "Error inesperado"))
+            }
+        }
+    }
+
+    fun deleteAuthAccount(onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val result = repository.deleteAuthAccount()
+                result.fold(
+                    onSuccess = { onResult(true) },
+                    onFailure = { onResult(false) }
+                )
+            } catch (e: Exception) {
+                onResult(false)
+            }
         }
     }
 

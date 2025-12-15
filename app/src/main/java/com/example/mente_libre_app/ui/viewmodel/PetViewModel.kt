@@ -36,4 +36,21 @@ class PetViewModel(
             _loading.value = false
         }
     }
+
+    fun addPoints(points: Int, onResult: (Boolean) -> Unit = {}) {
+        viewModelScope.launch {
+            _loading.value = true
+            val result = repository.addPoints(points)
+
+            result.onSuccess { pet ->
+                _pet.value = pet
+                onResult(true)
+            }.onFailure {
+                onResult(false)
+            }
+
+            _loading.value = false
+        }
+    }
+
 }

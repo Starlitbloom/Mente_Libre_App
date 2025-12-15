@@ -5,6 +5,7 @@ import com.example.mente_libre_app.data.remote.dto.evaluation.DailyEvaluationRes
 import com.example.mente_libre_app.data.remote.dto.evaluation.GratitudeEntryRequestDto
 import com.example.mente_libre_app.data.remote.dto.evaluation.GratitudeEntryResponseDto
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
 
@@ -23,4 +24,10 @@ interface EvaluationApi {
         @Query("userId") userId: Long,
         @Body request: GratitudeEntryRequestDto
     ): GratitudeEntryResponseDto
+
+    @GET("api/evaluations/gratitude")
+    suspend fun getGratitudeEntries(
+        @Query("userId") userId: Long
+    ): List<GratitudeEntryResponseDto>
+
 }

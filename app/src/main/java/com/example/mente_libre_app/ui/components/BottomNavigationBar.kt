@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Surface
@@ -18,14 +19,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.mente_libre_app.R
+import com.example.mente_libre_app.ui.theme.LocalExtraColors
 
 @Composable
 fun BottomNavigationBar(
     selectedItem: String,
     onItemSelected: (String) -> Unit
 ) {
+    val extra = LocalExtraColors.current
+    val scheme = MaterialTheme.colorScheme
+
     Surface(
-        color = Color.White,
+        color = scheme.onSecondary,
         shadowElevation = 16.dp,
         shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp)
     ) {
@@ -35,8 +40,8 @@ fun BottomNavigationBar(
         ) {
             val items = listOf(
                 Triple("inicio", R.drawable.ic_inicio, "Inicio"),
-                Triple("conexion", R.drawable.ic_chat, "Conexión"),
-                Triple("texto", R.drawable.ic_diario, "Texto"),
+                Triple("companera", R.drawable.ic_chat, "Companera"),
+                Triple("diario", R.drawable.ic_diario, "Diario"),
                 Triple("ajustes", R.drawable.ic_ajustes, "Ajustes")
             )
 
@@ -53,7 +58,7 @@ fun BottomNavigationBar(
                                 .size(60.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (isSelected) Color(0xFFFFEAF4) else Color.Transparent
+                                    if (isSelected) scheme.background else Color.Transparent
                                 )
                                 .clickable {
                                     onItemSelected(route)
@@ -62,7 +67,7 @@ fun BottomNavigationBar(
                             Icon(
                                 painter = painterResource(icon),
                                 contentDescription = description,
-                                tint = if (isSelected) Color(0xFF842C46) else Color(0xFFC5A3B3),
+                                tint = if (isSelected) extra.title else extra.icon,
                                 modifier = Modifier.size(30.dp)
                             )
                         }

@@ -25,18 +25,19 @@ fun SeguridadScreen(
     usuarioViewModel: UsuarioViewModel,
     authViewModel: AuthViewModel
 ) {
-    val extra = LocalExtraColors.current
     var biometriaActiva by remember { mutableStateOf(true) }
     var pinActivo by remember { mutableStateOf(true) }
+    val scheme = MaterialTheme.colorScheme
+    val extra = LocalExtraColors.current
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color(0xFFFFEAF4))
+            .background(scheme.background)
             .padding(24.dp)
     ) {
 
-        // 🔙 Flecha volver
+        // Flecha volver
         BackArrowCustom(
             navController = navController,
             color = extra.title,
@@ -60,7 +61,7 @@ fun SeguridadScreen(
         // --------------------------
         SeguridadCard(title = "Métodos de acceso") {
 
-            // 🔘 Acceso con huella
+            // Acceso con huella
             SeguridadSwitchItem(
                 icon = R.drawable.huella_dactilar,
                 text = "Usar huella para entrar",
@@ -92,10 +93,13 @@ fun SeguridadScreen(
             )
 
             SeguridadButtonItem(
-                text = "Cerrar sesión en todos los dispositivos",
+                text = "Cerrar sesión",
                 icon = R.drawable.cierre_sesion,
                 onClick = {
-                    // authViewModel.logoutAll()
+                    authViewModel.logout()   // borra token + userId
+                    navController.navigate("bienvenida") {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }
@@ -112,10 +116,11 @@ fun SeguridadCard(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         modifier = Modifier.fillMaxWidth()
     ) {
+        val extra = LocalExtraColors.current
 
         Column(modifier = Modifier.padding(16.dp)) {
 
-            Text(text = title, fontSize = 18.sp, color = Color(0xFF842C46))
+            Text(text = title, fontSize = 18.sp, color = extra.title)
 
             Spacer(Modifier.height(10.dp))
 
@@ -138,16 +143,19 @@ fun SeguridadSwitchItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
 
+        val scheme = MaterialTheme.colorScheme
+        val extra = LocalExtraColors.current
+
         Icon(
             painter = painterResource(id = icon),
             contentDescription = text,
-            tint = Color(0xFFC5A3B3),
+            tint = extra.icon,
             modifier = Modifier.size(32.dp)
         )
 
         Spacer(Modifier.width(16.dp))
 
-        Text(text, fontSize = 18.sp, color = Color(0xFF842C46))
+        Text(text, fontSize = 18.sp, color = extra.title)
 
         Spacer(Modifier.weight(1f))
 
@@ -164,6 +172,8 @@ fun SeguridadButtonItem(
     text: String,
     onClick: () -> Unit
 ) {
+    val scheme = MaterialTheme.colorScheme
+    val extra = LocalExtraColors.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -175,12 +185,12 @@ fun SeguridadButtonItem(
         Icon(
             painter = painterResource(id = icon),
             contentDescription = text,
-            tint = Color(0xFFC5A3B3),
+            tint = extra.icon,
             modifier = Modifier.size(32.dp)
         )
 
         Spacer(Modifier.width(18.dp))
 
-        Text(text, fontSize = 18.sp, color = Color(0xFF842C46))
+        Text(text, fontSize = 18.sp, color = extra.title)
     }
 }

@@ -161,13 +161,18 @@ fun EliminarCuentaScreen(
                 onClick = {
                     mostrandoLoading = true
 
-                    usuarioViewModel.eliminarPerfil { ok ->
-                        if (ok) {
-                            authViewModel.logout()
-                            navegarDespues = true  // activar navegación retrasada
+                    authViewModel.deleteAuthAccount { okAuth ->
+                        if (okAuth) {
+                            usuarioViewModel.eliminarPerfil { okPerfil ->
+                                authViewModel.logout()
+                                navegarDespues = true
+                            }
+                        } else {
+                            mostrandoLoading = false
                         }
                     }
                 },
+
                 colors = ButtonDefaults.buttonColors(extra.buttonAlt),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -192,9 +197,9 @@ fun EliminarCuentaScreen(
 
         // EFECTO DE NAVEGACIÓN DIFERIDA (3 segundos)
         if (navegarDespues) {
-            LaunchedEffect(Unit) {
+            LaunchedEffect(navegarDespues) {
                 kotlinx.coroutines.delay(3000)
-                navController.navigate("inicio") {
+                navController.navigate("bienvenida") {
                     popUpTo(0) { inclusive = true }
                 }
             }
@@ -204,20 +209,34 @@ fun EliminarCuentaScreen(
 
 @Composable
 fun EliminarCuentaDialogLoading() {
+
+    val scheme = MaterialTheme.colorScheme
+    val extra = LocalExtraColors.current
+
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.5f))
-            .blur(13.dp),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
+        // Fondo semitransparente + desenfoque
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .blur(13.dp) // desenfoca solo el fondo
+                .background(Color.Black.copy(alpha = 0.5f))
+        )
+
+        // Contenido nítido
         Card(
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEAF4)),
+            colors = CardDefaults.cardColors(containerColor = scheme.background),
             modifier = Modifier
-                .width(260.dp)
-                .height(280.dp)
-                .border(1.dp, Color(0xFFF95C1E), RoundedCornerShape(24.dp))
+                .width(300.dp)
+                .height(360.dp)
+                .border(
+                    width = 1.dp,
+                    color = extra.arrowColor,
+                    shape = RoundedCornerShape(24.dp)
+                )
         ) {
             Column(
                 modifier = Modifier
@@ -228,25 +247,26 @@ fun EliminarCuentaDialogLoading() {
             ) {
                 Text(
                     text = "Gracias por haber sido\nparte de nuestra\ncomunidad.\nSi decides volver,\nsiempre serás\nbienvenid@.",
-                    color = Color(0xFF842C46),
+                    color = extra.title,
                     textAlign = TextAlign.Center,
                     fontFamily = FontFamily(Font(R.font.source_serif_pro_bold)),
-                    fontSize = 18.sp
+                    fontSize = 22.sp
                 )
 
-                Spacer(Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 GradientLoader(modifier = Modifier.size(90.dp))
 
-                Spacer(Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
                     text = "Cargando...",
-                    color = Color(0xFF842C46),
+                    color = extra.title,
                     fontFamily = FontFamily(Font(R.font.source_serif_pro_regular)),
                     fontSize = 16.sp
                 )
             }
         }
+
     }
 }

@@ -2,7 +2,11 @@ package com.example.mente_libre_app.data.remote.core
 
 import android.content.Context
 import com.example.mente_libre_app.data.local.TokenDataStore
+import com.example.mente_libre_app.data.remote.api.AdminApi
 import com.example.mente_libre_app.data.remote.api.AuthApi
+import com.example.mente_libre_app.data.remote.api.ChatApi
+import com.example.mente_libre_app.data.remote.api.EmotionApi
+import com.example.mente_libre_app.data.remote.api.EvaluationApi
 import com.example.mente_libre_app.data.remote.api.StorageApi
 import com.example.mente_libre_app.data.remote.api.UserProfileApi
 import com.example.mente_libre_app.data.remote.api.VirtualPetApi
@@ -92,6 +96,62 @@ object RetrofitInstance {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(VirtualPetApi::class.java)
+    }
+
+    // ------------------------------------------------------
+    // EVALUATION API  (Diario + Gratitud)
+    // ------------------------------------------------------
+    fun createEvaluationApi(context: Context): EvaluationApi {
+        val client = createClient(context)
+
+        return Retrofit.Builder()
+            .baseUrl("http://10.0.2.2:8080/") // Gateway
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(EvaluationApi::class.java)
+    }
+
+    //------------------------------------------------------
+    // EMOTION API
+    // ------------------------------------------------------
+    fun createEmotionApi(context: Context): EmotionApi {
+        val client = createClient(context)
+
+        return Retrofit.Builder()
+            .baseUrl("http://10.0.2.2:8080/") // Gateway
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(EmotionApi::class.java)
+    }
+
+    //------------------------------------------------------
+    // ADMIN API
+    // ------------------------------------------------------
+    fun createAdminApi(context: Context): AdminApi {
+        val client = createClient(context)
+
+        return Retrofit.Builder()
+            .baseUrl("http://10.0.2.2:8080/") // gateway
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(AdminApi::class.java)
+    }
+
+    //------------------------------------------------------
+    // CHAT API
+    // ------------------------------------------------------
+    fun createChatApi(context: Context): ChatApi {
+        val client = createClient(context)
+
+        return Retrofit.Builder()
+            .baseUrl("http://10.0.2.2:8080/") // Gateway
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ChatApi::class.java)
     }
 
 }

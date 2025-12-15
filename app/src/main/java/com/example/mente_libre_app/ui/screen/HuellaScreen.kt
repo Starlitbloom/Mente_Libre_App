@@ -215,7 +215,14 @@ fun puedeUsarBiometria(context: Context): Boolean {
     val biometricManager = BiometricManager.from(context)
     val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or
             BiometricManager.Authenticators.DEVICE_CREDENTIAL
-    return biometricManager.canAuthenticate(authenticators) == BiometricManager.BIOMETRIC_SUCCESS
+
+    return when (biometricManager.canAuthenticate(authenticators)) {
+
+        BiometricManager.BIOMETRIC_SUCCESS -> true   // Huella o PIN disponible
+        BiometricManager.BIOMETRIC_STATUS_UNKNOWN -> true  // A veces en emuladores
+        BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> true // No hay huella, pero sí PIN
+        else -> false
+    }
 }
 
 // Función de autenticación biométrica

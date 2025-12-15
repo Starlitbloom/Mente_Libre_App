@@ -19,6 +19,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mente_libre_app.R
 import com.example.mente_libre_app.ui.components.BottomNavigationBar
+import com.example.mente_libre_app.ui.theme.LocalExtraColors
 
 @Composable
 fun AjustesScreen(
@@ -43,11 +45,12 @@ fun AjustesScreen(
     onTemaClick: () -> Unit,
     onEmergenciaClick: () -> Unit,
     onSoporteClick: () -> Unit,
-    onSugerenciasClick: () -> Unit,
-    onCerrarSesion: () -> Unit
+    onSugerenciasClick: () -> Unit
 ) {
     val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
     val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
+    val scheme = MaterialTheme.colorScheme
+    val extra = LocalExtraColors.current
 
     Scaffold(
         bottomBar = {
@@ -56,14 +59,14 @@ fun AjustesScreen(
                 onItemSelected = onItemSelected
             )
         },
-        containerColor = Color(0xFFFFEAF4)
+        containerColor = scheme.background
     ) { innerPadding ->
 
         Column(
             modifier = Modifier
                 .padding(innerPadding) // Esto evita que el contenido quede detrás de la barra
                 .fillMaxSize()
-                .background(Color(0xFFFFEAF4))
+                .background(scheme.background)
                 .padding(horizontal = 24.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -71,7 +74,7 @@ fun AjustesScreen(
             // Título
             Text(
                 text = "Ajustes",
-                color = Color(0xFF842C46),
+                color = extra.title,
                 fontFamily = serifBold,
                 fontSize = 29.sp,
                 modifier = Modifier.align(Alignment.Start)
@@ -99,25 +102,6 @@ fun AjustesScreen(
                     AjusteItem("Sugerencias", R.drawable.ic_sugerencia, onSugerenciasClick)
                 )
             )
-
-            Spacer(modifier = Modifier.height(35.dp))
-
-            // 🔹 Botón cerrar sesión
-            Button(
-                onClick = onCerrarSesion,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8688A8)),
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .height(70.dp)
-            ) {
-                Text(
-                    text = "Cerrar Sesión",
-                    fontFamily = serifRegular,
-                    fontSize = 29.sp,
-                    color = Color.White
-                )
-            }
         }
     }
 }
@@ -134,6 +118,8 @@ fun AjusteCard(items: List<AjusteItem>) {
 
             val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
             val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
+            val scheme = MaterialTheme.colorScheme
+            val extra = LocalExtraColors.current
 
             items.forEachIndexed { index, item ->
 
@@ -148,7 +134,7 @@ fun AjusteCard(items: List<AjusteItem>) {
                     Icon(
                         painter = painterResource(id = item.icon),
                         contentDescription = item.text,
-                        tint = Color(0xFFC5A3B3),
+                        tint = extra.icon,
                         modifier = Modifier.size(32.dp)  // <-- AUMENTADO
                     )
 
@@ -157,14 +143,14 @@ fun AjusteCard(items: List<AjusteItem>) {
                     Text(
                         text = item.text,
                         fontSize = 20.sp,                 // <-- AUMENTADO
-                        color = Color(0xFF842C46),
+                        color = extra.title,
                         fontFamily = serifRegular
                     )
                 }
 
                 if (index != items.lastIndex) {
                     Divider(
-                        color = Color(0xFF842C46),
+                        color = extra.title,
                         thickness = 1.dp,
                         modifier = Modifier.padding(horizontal = 20.dp)
                     )

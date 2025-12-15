@@ -1,6 +1,7 @@
 package com.example.mente_libre_app.data.local
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -14,6 +15,8 @@ class TokenDataStore(private val context: Context) {
     companion object {
         private val TOKEN_KEY = stringPreferencesKey("jwt_token")
         private val USER_ID_KEY = stringPreferencesKey("user_id")
+        private val SHOW_WELCOME_POINTS = booleanPreferencesKey("show_welcome_points")
+        private val LAST_MOOD_REWARD_DATE = stringPreferencesKey("last_mood_reward_date")
     }
 
     // TOKEN
@@ -49,4 +52,13 @@ class TokenDataStore(private val context: Context) {
             prefs.remove(USER_ID_KEY)
         }
     }
+
+
+    val lastMoodRewardDateFlow: Flow<String?> =
+        context.dataStore.data.map { prefs -> prefs[LAST_MOOD_REWARD_DATE] }
+
+    suspend fun setLastMoodRewardDate(date: String) {
+        context.dataStore.edit { prefs -> prefs[LAST_MOOD_REWARD_DATE] = date }
+    }
+
 }

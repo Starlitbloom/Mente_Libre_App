@@ -29,17 +29,25 @@ import com.example.mente_libre_app.ui.screen.Bienvenida2Screen
 import com.example.mente_libre_app.ui.screen.Bienvenida3Screen
 import com.example.mente_libre_app.ui.screen.Bienvenida4Screen
 import com.example.mente_libre_app.ui.screen.BienvenidaScreen
+import com.example.mente_libre_app.ui.screen.BitacoraScreen
+import com.example.mente_libre_app.ui.screen.CambiarContrasenaScreen
 import com.example.mente_libre_app.ui.screen.CargandoScreen
+import com.example.mente_libre_app.ui.screen.ChatScreen
 import com.example.mente_libre_app.ui.screen.CrearScreenVm
 import com.example.mente_libre_app.ui.screen.CrisisScreen
+import com.example.mente_libre_app.ui.screen.DesafiosSemanalesScreen
+import com.example.mente_libre_app.ui.screen.DiarioGratitudScreen
+import com.example.mente_libre_app.ui.screen.DiarioScreen
 import com.example.mente_libre_app.ui.screen.EliminarCuentaScreen
 import com.example.mente_libre_app.ui.screen.EstrategiasScreen
 import com.example.mente_libre_app.ui.screen.FotoScreen
 import com.example.mente_libre_app.ui.screen.FraseScreen
+import com.example.mente_libre_app.ui.screen.CompaneraScreen
 import com.example.mente_libre_app.ui.screen.GeneroScreen
 import com.example.mente_libre_app.ui.screen.HuellaScreen
 import com.example.mente_libre_app.ui.screen.IniciarScreenVm
 import com.example.mente_libre_app.ui.screen.InicioScreen
+import com.example.mente_libre_app.ui.screen.LineasDeAyudaScreen
 import com.example.mente_libre_app.ui.screen.MascotaScreen
 import com.example.mente_libre_app.ui.screen.NombrarMascotaScreen
 import com.example.mente_libre_app.ui.screen.ObjetivoScreen
@@ -52,8 +60,17 @@ import com.example.mente_libre_app.ui.screen.SeguridadScreen
 import com.example.mente_libre_app.ui.screen.SeleccionarUbicacionScreen
 import com.example.mente_libre_app.ui.screen.SelectorScreen
 import com.example.mente_libre_app.ui.screen.TemaScreen
+import com.example.mente_libre_app.ui.screen.admin.AdminDashboardScreen
+import com.example.mente_libre_app.ui.viewmodel.AdminViewModel
+import com.example.mente_libre_app.ui.viewmodel.AdminViewModelFactory
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModel
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModelFactory
+import com.example.mente_libre_app.ui.viewmodel.ChatViewModel
+import com.example.mente_libre_app.ui.viewmodel.ChatViewModelFactory
+import com.example.mente_libre_app.ui.viewmodel.EmotionViewModel
+import com.example.mente_libre_app.ui.viewmodel.EmotionViewModelFactory
+import com.example.mente_libre_app.ui.viewmodel.PetViewModel
+import com.example.mente_libre_app.ui.viewmodel.PetViewModelFactory
 import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModel
 import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModelFactory
 import com.google.accompanist.navigation.animation.AnimatedNavHost
@@ -82,6 +99,20 @@ fun AppNavGraph(
     val usuarioViewModel: UsuarioViewModel = viewModel(
         factory = UsuarioViewModelFactory(context)
     )
+
+    val petViewModel: PetViewModel = viewModel(
+        factory = PetViewModelFactory(context) // tu factory
+    )
+
+    val chatViewModel: ChatViewModel = viewModel(
+        factory = ChatViewModelFactory(context)
+    )
+
+    val adminViewModel: AdminViewModel = viewModel(
+        factory = AdminViewModelFactory(context)
+    )
+
+    val emotionViewModel: EmotionViewModel = viewModel(factory = EmotionViewModelFactory(context))
 
     // -------------------------
     // Navegadores
@@ -282,9 +313,17 @@ fun AppNavGraph(
                     arguments = listOf(navArgument("mascota") { type = NavType.StringType })
                 ) {
                     val mascota = it.arguments?.getString("mascota") ?: ""
+
                     NombrarMascotaScreen(
                         mascota = mascota,
+                        petViewModel = petViewModel,
                         onGuardarNombre = { nombre ->
+                            petViewModel.createPet(
+                                name = nombre,
+                                type = mascota,            // o un código ("GATO","PERRO", etc.)
+                                avatarKey = mascota        // o la key que tengas
+                            )
+
                             navController.navigate(Route.Inicio.path) {
                                 popUpTo(Route.Portada.path) { inclusive = false }
                                 launchSingleTop = true
@@ -297,7 +336,8 @@ fun AppNavGraph(
                     IniciarScreenVm(
                         authViewModel = authViewModel,
                         onRegisterClick = goCrear,
-                        onLoginSuccess = goInicio
+                        onLoginSuccess = goInicio,
+                        onAdminLogin = { navController.navigate("admin_dashboard") },
                     )
                 }
 
@@ -310,11 +350,12 @@ fun AppNavGraph(
                         navController = navController,
                         fotoPerfil = fotoPerfil, // ESTA ES LA FOTO REAL O AVATAR
                         nombreUsuario = nombre,
+                        petViewModel = petViewModel,
                         onNavChange = { index ->
                             when (index) {
                                 0 -> navController.navigate(Route.Inicio.path)
-                                1 -> { }
-                                2 -> navController.navigate(Route.Perfil.path)
+                                1 -> navController.navigate(Route.Compannera.path)
+                                2 -> navController.navigate(Route.Diario.path)
                                 3 -> navController.navigate(Route.Ajustes.path)
                             }
                         },
@@ -346,8 +387,58 @@ fun AppNavGraph(
 
                 composable(Route.Animo.path) {
                     AnimoScreen(
+                        authViewModel = authViewModel,
+                        emotionViewModel = emotionViewModel,
+                        petViewModel= petViewModel,
                         onBack = { navController.popBackStack() }
                     )
+                }
+
+                composable(Route.Diario.path) {
+                    DiarioScreen(
+                        navController = navController,
+                        onOpenDiarioGratitud = {
+                            navController.navigate(Route.DiarioGratitud.path)
+                        },
+                        onOpenLineasDeAyuda = {
+                            navController.navigate(Route.LineasAyuda.path)
+                        },
+                        onOpenDesafiosSemanales = {
+                            navController.navigate(Route.DesafiosSemanales.path)
+                        },
+                        onNavChange = { index ->
+                            when (index) {
+                                0 -> navController.navigate(Route.Inicio.path)
+                                1 -> navController.navigate(Route.Companera.path)
+                                2 -> navController.navigate(Route.Diario.path)
+                                3 -> navController.navigate(Route.Ajustes.path)
+                            }
+                        }
+                    )
+                }
+
+                composable(Route.DiarioGratitud.path) {
+                    DiarioGratitudScreen(
+                        onBack = { navController.popBackStack() },
+                        authViewModel = authViewModel,
+                        petViewModel= petViewModel
+                    )
+                }
+
+                composable(Route.Bitacora.path) {
+                    BitacoraScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Route.LineasAyuda.path) {
+                    LineasDeAyudaScreen(
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Route.DesafiosSemanales.path) {
+                    DesafiosSemanalesScreen(onBack = { navController.popBackStack() })
                 }
 
                 composable(Route.Ajustes.path) {
@@ -355,7 +446,8 @@ fun AppNavGraph(
                         onItemSelected = { selectedItem ->
                             when (selectedItem) {
                                 "inicio" -> navController.navigate(Route.Inicio.path)
-                                "perfil" -> navController.navigate(Route.Perfil.path)
+                                "companera" -> navController.navigate(Route.Companera.path)
+                                "diario" -> navController.navigate(Route.Diario.path)
                             }
                         },
                         onPerfilClick = { navController.navigate(Route.Perfil.path) },
@@ -364,8 +456,7 @@ fun AppNavGraph(
                         onTemaClick = { navController.navigate("tema?edit=true") },
                         onEmergenciaClick = { /* Navegar a Emergencia */ },
                         onSoporteClick = { /* Navegar a Soporte */ },
-                        onSugerenciasClick = { /* Navegar a Sugerencias */ },
-                        onCerrarSesion = { /* Lógica para cerrar sesión */ }
+                        onSugerenciasClick = { /* Navegar a Sugerencias */ }
                     )
                 }
 
@@ -377,7 +468,7 @@ fun AppNavGraph(
                     )
                 }
 
-                composable("eliminar_cuenta") {
+                composable(Route.EliminarCuenta.path) {
                     EliminarCuentaScreen(
                         navController = navController,
                         usuarioViewModel = usuarioViewModel,
@@ -392,7 +483,7 @@ fun AppNavGraph(
                     )
                 }
 
-                composable("seguridad") {
+                composable(Route.Seguridad.path) {
                     SeguridadScreen(
                         navController = navController,
                         usuarioViewModel = usuarioViewModel,
@@ -400,6 +491,53 @@ fun AppNavGraph(
                     )
                 }
 
+                composable(Route.CambiarContrasena.path) {
+                    CambiarContrasenaScreen(
+                        navController = navController,
+                        authViewModel = authViewModel
+                    )
+                }
+
+                composable(Route.AdminDashboard.path) {
+                    AdminDashboardScreen(
+                        viewModel = adminViewModel, // Agregar el ViewModel adecuado
+                        goToUsers = { navController.navigate(Route.Users.path) }, // Puedes agregar más destinos
+                        goToRoles = { navController.navigate(Route.Roles.path) },
+                        goToReportes = { navController.navigate(Route.Reportes.path) }
+                    )
+                }
+
+                composable(Route.Compannera.path) {
+                    CompaneraScreen(
+                        navController = navController,
+                        petViewModel = petViewModel
+                    )
+                }
+
+                composable(Route.Chat.path) {
+
+                    val userId = authViewModel.usuario.collectAsState().value?.userId
+                    val pet = petViewModel.pet.collectAsState().value
+
+                    if (userId != null && pet != null) {
+                        ChatScreen(
+                            navController = navController,
+                            chatViewModel = chatViewModel,
+                            userId = userId,
+                            petId = pet.id,
+                            petAvatarKey = pet.avatarKey
+                        )
+                    }
+                }
+
+                composable(Route.AdminDashboard.path) {
+                    AdminDashboardScreen(
+                        viewModel = adminViewModel,
+                        goToUsers = { navController.navigate(Route.Users.path) },
+                        goToRoles = { navController.navigate(Route.Roles.path) },
+                        goToReportes = { navController.navigate(Route.Reportes.path) }
+                    )
+                }
 
             }
         }

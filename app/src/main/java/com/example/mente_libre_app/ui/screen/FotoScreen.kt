@@ -278,7 +278,7 @@ fun FotoScreen(
                     .size(80.dp)
                     .clip(CircleShape)
                     .border(3.dp, extra.arrowColor, CircleShape)
-                    .background(scheme.onPrimary)
+                    .background(extra.arrowBackground)
                     .clickable {
                         mostrarDialog = true // Abre la galería para elegir una imagen
                     }
@@ -362,7 +362,7 @@ fun FotoScreen(
             ) {
                 Text(
                     text = "3 de 5",
-                    color = scheme.onSecondary,
+                    color = extra.glowInner,
                     fontFamily = serifRegular,
                     fontSize = 16.sp
                 )

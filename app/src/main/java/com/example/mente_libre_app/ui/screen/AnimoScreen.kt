@@ -50,6 +50,14 @@ import com.example.mente_libre_app.data.local.mood.MoodEntry
 import com.example.mente_libre_app.data.local.mood.Mood   // 🔹 usamos el enum compartido
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import com.example.mente_libre_app.data.local.TokenDataStore
+import com.example.mente_libre_app.ui.components.RewardPopup
+import com.example.mente_libre_app.ui.theme.LocalExtraColors
+import com.example.mente_libre_app.ui.viewmodel.AuthViewModel
+import com.example.mente_libre_app.ui.viewmodel.EmotionViewModel
+import com.example.mente_libre_app.ui.viewmodel.PetViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -59,9 +67,9 @@ import kotlin.math.roundToInt
 
 /* ========================= PALETA ========================= */
 private val Fondo = Color(0xFFFFEDF5)
-private val Texto = Color(0xFF842C46)
+
 private val ChipBg = Color(0xFFFFFFFF)
-private val ChipStroke = Texto.copy(0.25f)
+private val ChipStroke = Color(0xFF888888).copy(0.25f)
 private val CurveColor = Color(0xFF734B3A)
 private val MoodGreen = Color(0xFFA6E7A6)
 
@@ -145,11 +153,20 @@ private fun moodFromLabel(label: String?): Mood? =
 /* =================== PANTALLA ===================== */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AnimoScreen(onBack: (() -> Unit)? = null) {
+fun AnimoScreen(
+    authViewModel: AuthViewModel,
+    emotionViewModel: EmotionViewModel,
+    petViewModel: PetViewModel,
+    onBack: (() -> Unit)? = null
+) {
 
     var selectedPeriod by remember { mutableStateOf(0) }        // 0 día, 1 semana, 2 mes, 3 año
     var showHelp by remember { mutableStateOf(false) }
     var selectedMood by remember { mutableStateOf<Mood?>(null) }
+
+    val serifBold = FontFamily(Font(R.font.source_serif_pro_bold))
+    val serifRegular = FontFamily(Font(R.font.source_serif_pro_regular))
+    val currentUserId by authViewModel.currentUserId.collectAsState()
 
     // Ancla temporal y mes visible
     var anchorDate by remember { mutableStateOf(Date()) }
@@ -157,6 +174,9 @@ fun AnimoScreen(onBack: (() -> Unit)? = null) {
     var currentMonth by remember {
         mutableStateOf(MonthState(nowCal.get(Calendar.YEAR), nowCal.get(Calendar.MONTH)))
     }
+    val extra = LocalExtraColors.current
+    val scheme = MaterialTheme.colorScheme
+    val Texto = extra.title
 
     // Nombres / menús para Mes/Año
     val monthNames = remember {
@@ -178,6 +198,7 @@ fun AnimoScreen(onBack: (() -> Unit)? = null) {
     var periodEntries by remember { mutableStateOf<List<MoodEntry>>(emptyList()) }
     var monthEntries by remember { mutableStateOf<List<MoodEntry>>(emptyList()) }
     var recentEntries by remember { mutableStateOf<List<MoodEntry>>(emptyList()) }
+
 
     // Sincroniza anchorDate cuando cambian pestaña o currentMonth
     LaunchedEffect(selectedPeriod, currentMonth) {
@@ -397,12 +418,27 @@ fun AnimoScreen(onBack: (() -> Unit)? = null) {
                     selectedMood?.let { m ->
                         scope.launch {
                             val today = todayIso()
+
+                            // guardar en Room
                             val existing = dao.entryOn(today)
                             if (existing == null) {
                                 dao.insert(MoodEntry(moodType = m.label, date = today))
                             } else {
                                 dao.insert(existing.copy(moodType = m.label))
                             }
+
+                            // enviar al backend (si hay userId)
+                            currentUserId?.let { uid ->
+                                try {
+                                    emotionViewModel.registerMood(
+                                        userId = uid,
+                                        mood = m.label,
+                                        context = null
+                                    )
+                                } catch (_: Exception) {}
+                            }
+
+                            // refrescar gráfico
                             val (startIso, endIso) = periodRangeIso(selectedPeriod, anchorDate)
                             periodEntries = dao.entriesBetween(startIso, endIso)
                             monthEntries = dao.entriesBetween(
@@ -411,15 +447,19 @@ fun AnimoScreen(onBack: (() -> Unit)? = null) {
                             )
                             val recentStart = daysAgo(90).toIso()
                             recentEntries = dao.entriesBetween(recentStart, todayIso())
+
                             selectedMood = null
                         }
                     }
                 },
-                enabled = selectedMood != null,
+
+                        enabled = selectedMood != null,
                 colors = ButtonDefaults.buttonColors(containerColor = Texto),
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier.fillMaxWidth()
-            ) { Text("Guardar estado", color = Color.White) }
+            ) {
+                Text("Guardar estado", color = Color.White)
+            }
 
             Spacer(Modifier.height(18.dp))
 
@@ -572,6 +612,7 @@ private fun MoodPeriodTabs(
     selectedIndex: Int,
     onSelected: (Int) -> Unit
 ) {
+    val extra = LocalExtraColors.current
     Row(
         Modifier
             .fillMaxWidth()
@@ -584,7 +625,7 @@ private fun MoodPeriodTabs(
         options.forEachIndexed { i, label ->
             val isSel = i == selectedIndex
             Surface(
-                color = if (isSel) Texto else Color.Transparent,
+                color = if (isSel) extra.title else Color.Transparent,
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
                     .weight(1f)
@@ -599,7 +640,7 @@ private fun MoodPeriodTabs(
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
                         text = label,
-                        color = if (isSel) Color.White else Texto,
+                        color = if (isSel) Color.White else extra.title,
                         fontSize = 13.sp,
                         fontWeight = if (isSel) FontWeight.SemiBold else FontWeight.Medium
                     )
@@ -620,6 +661,7 @@ private fun MoodPickerRow(
     selected: Mood?,
     onSelect: (Mood) -> Unit
 ) {
+    val extra = LocalExtraColors.current
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(horizontal = 4.dp),
@@ -651,7 +693,7 @@ private fun MoodPickerRow(
                 Spacer(Modifier.height(8.dp))
                 Text(
                     m.label,
-                    color = if (sel) Texto else Texto.copy(alpha = 0.70f),
+                    color = if (sel) extra.title else extra.title.copy(alpha = 0.70f),
                     fontSize = 14.sp,
                     fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Normal,
                     textAlign = TextAlign.Center,
@@ -800,9 +842,10 @@ private fun MonthHistoryStrip(
 
     var monthMenuOpen by remember { mutableStateOf(false) }
     var yearMenuOpen by remember { mutableStateOf(false) }
+    val extra = LocalExtraColors.current
 
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        Text("Historial de humor", color = Texto, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+        Text("Historial de humor", color = extra.title, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.weight(1f))
 
         OutlinedButton(
@@ -810,8 +853,8 @@ private fun MonthHistoryStrip(
             shape = RoundedCornerShape(20.dp),
             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
         ) {
-            Text("${monthState.year}", color = Texto)
-            Icon(Icons.Filled.ArrowDropDown, contentDescription = null, tint = Texto)
+            Text("${monthState.year}", color = extra.title)
+            Icon(Icons.Filled.ArrowDropDown, contentDescription = null, tint = extra.title)
         }
         DropdownMenu(expanded = yearMenuOpen, onDismissRequest = { yearMenuOpen = false }) {
             years.forEach { y ->
@@ -829,8 +872,8 @@ private fun MonthHistoryStrip(
             shape = RoundedCornerShape(20.dp),
             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
         ) {
-            Text(monthNames[monthState.monthZeroBased], color = Texto)
-            Icon(Icons.Filled.ArrowDropDown, contentDescription = null, tint = Texto)
+            Text(monthNames[monthState.monthZeroBased], color = extra.title)
+            Icon(Icons.Filled.ArrowDropDown, contentDescription = null, tint = extra.title)
         }
         DropdownMenu(expanded = monthMenuOpen, onDismissRequest = { monthMenuOpen = false }) {
             monthNames.forEachIndexed { idx, name ->
@@ -856,7 +899,7 @@ private fun MonthHistoryStrip(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     day.toString(),
-                    color = Texto.copy(.85f),
+                    color = extra.title.copy(.85f),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -880,7 +923,7 @@ private fun MonthHistoryStrip(
                 Spacer(Modifier.height(6.dp))
                 Text(
                     weekday,
-                    color = Texto.copy(.8f),
+                    color = extra.title.copy(.8f),
                     fontSize = 12.sp
                 )
             }
@@ -894,6 +937,7 @@ private fun RecentHistory(
     entries: List<MoodEntry>,
     title: String = "Historial reciente"
 ) {
+    val extra = LocalExtraColors.current
     val parsed = remember(entries) {
         entries
             .mapNotNull { e -> runCatching { isoToDate(e.date) to moodFromLabel(e.moodType) }.getOrNull() }
@@ -903,7 +947,7 @@ private fun RecentHistory(
 
     if (parsed.isEmpty()) return
 
-    Text(title, color = Texto, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+    Text(title, color = extra.title, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
     Spacer(Modifier.height(8.dp))
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -938,8 +982,8 @@ private fun RecentHistory(
                     }
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(text = mood?.label ?: "Sin registro", color = Texto, fontWeight = FontWeight.SemiBold)
-                        Text(text = HUMAN.format(date), color = Texto.copy(alpha = 0.70f), fontSize = 12.sp)
+                        Text(text = mood?.label ?: "Sin registro", color = extra.title, fontWeight = FontWeight.SemiBold)
+                        Text(text = HUMAN.format(date), color = extra.title.copy(alpha = 0.70f), fontSize = 12.sp)
                     }
                 }
             }

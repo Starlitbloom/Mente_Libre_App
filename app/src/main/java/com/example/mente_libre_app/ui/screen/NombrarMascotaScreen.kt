@@ -29,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -42,14 +41,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mente_libre_app.R
-import com.example.mente_libre_app.ui.viewmodel.MascotaViewModel
+import com.example.mente_libre_app.ui.viewmodel.PetViewModel
+import com.example.mente_libre_app.ui.viewmodel.PetViewModelFactory
 
 @Composable
 fun NombrarMascotaScreen(
     mascota: String,
+    petViewModel: PetViewModel,
     onGuardarNombre: (String) -> Unit
-) {
-    val viewModel: MascotaViewModel = viewModel()
+)
+ {
     val context = LocalContext.current
     var nombre by remember { mutableStateOf("") }
 
@@ -165,7 +166,21 @@ fun NombrarMascotaScreen(
 
                         Button(
                             onClick = {
-                                viewModel.guardarNombre(context, nombre)
+                                // Primero cargar la mascota desde el backend
+                                petViewModel.loadMyPet()
+
+                                val yaTieneMascota = petViewModel.pet.value != null
+
+                                if (!yaTieneMascota) {
+                                    // Solo crear si NO existe mascota previa
+                                    petViewModel.createPet(
+                                        name = nombre,
+                                        type = mascota,
+                                        avatarKey = mascota.lowercase()
+                                    )
+                                }
+
+                                // Continuar flujo normal
                                 onGuardarNombre(nombre)
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = gradientColors[0]),

@@ -96,15 +96,17 @@ class UsuarioViewModel(
             _loading.value = true
 
             try {
-                val updated = repository.updateMyProfile(dto)
+                val dtoFinal = dto.copy(
+                    tema = _tema.value
+                )
+
+                val updated = repository.updateMyProfile(dtoFinal)
                 _perfil.value = updated
                 onResult(true)
                 _error.value = null
+
             } catch (e: Exception) {
                 _error.value = e.message ?: "Error al actualizar perfil"
-                onResult(false)
-            } catch (e: Exception) {
-                _error.value = e.message
                 onResult(false)
             }
 
@@ -222,7 +224,8 @@ class UsuarioViewModel(
                     fechaNacimiento = _cumpleanos.value,
                     notificaciones = _perfil.value?.notificaciones ?: true,
                     generoId = _generoId.value ?: _perfil.value!!.genero.id,
-                    fotoPerfil = nuevaFoto
+                    fotoPerfil = nuevaFoto,
+                    tema = _tema.value
                 )
 
                 val updated = repository.updateMyProfile(dto)

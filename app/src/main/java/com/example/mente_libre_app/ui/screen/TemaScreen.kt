@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mente_libre_app.R
+import com.example.mente_libre_app.data.remote.dto.userprofile.UpdateUserProfileRequestDto
 import com.example.mente_libre_app.ui.theme.ExtraGreen
 import com.example.mente_libre_app.ui.theme.ExtraPink
 import com.example.mente_libre_app.ui.theme.ExtraPurple
@@ -128,7 +129,6 @@ fun TemaScreen(
                         Text("<", color = extra.arrowColor, fontSize = 30.sp)
                     }
 
-
                     // NOMBRE
                     Text(
                         text = temaActual,
@@ -145,7 +145,7 @@ fun TemaScreen(
                             .background(extra.arrowBackground)
                             .border(3.dp, extra.arrowBorder, CircleShape)
                             .clickable {
-                                indexTema = if (indexTema > 0) indexTema - 1 else temas.size - 1
+                                indexTema = if (indexTema < temas.size - 1) indexTema + 1 else 0
                             },
                         contentAlignment = Alignment.Center
                     ) {
@@ -158,16 +158,25 @@ fun TemaScreen(
                 // BOTÓN SIGUIENTE
                 Button(
                     onClick = {
+
                         usuarioViewModel.setTema(temaActual)
 
                         if (isEditing) {
-                            // guardar → volver atrás
-                            onNext()
+
+                            usuarioViewModel.actualizarPerfil(
+                                UpdateUserProfileRequestDto()
+                            ) { success ->
+                                if (success) {
+                                    onNext()
+                                }
+                            }
+
                         } else {
                             // flujo normal del registro
                             onNext()
                         }
                     },
+
                     colors = ButtonDefaults.buttonColors(
                         containerColor = extra.buttonAlt,
                         contentColor = colorScheme.onPrimary

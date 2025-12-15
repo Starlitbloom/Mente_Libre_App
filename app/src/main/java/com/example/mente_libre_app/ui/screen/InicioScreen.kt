@@ -21,7 +21,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,6 +35,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -41,9 +47,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.example.mente_libre_app.R
+import com.example.mente_libre_app.data.local.TokenDataStore
 import com.example.mente_libre_app.navigation.Route
 import com.example.mente_libre_app.ui.components.BottomNavigationBar
+import com.example.mente_libre_app.ui.components.RewardPopup
 import com.example.mente_libre_app.ui.theme.LocalExtraColors
+import com.example.mente_libre_app.ui.viewmodel.PetViewModel
+import kotlinx.coroutines.launch
 
 private val CardRosa = Color(0xFFFFDCE3)
 private val CardVerde = Color(0xFF9DB25D)
@@ -61,13 +71,19 @@ fun InicioScreen(
     navController: NavHostController,
     fotoPerfil: String?,   // aquí llega la foto
     nombreUsuario: String?,
+    petViewModel: PetViewModel,
     onNavChange: (Int) -> Unit = {},
     onGoAnimo: () -> Unit = {}
 )
  {
+     val pet = petViewModel.pet.collectAsState().value
+     val context = LocalContext.current
+     val tokenStore = remember { TokenDataStore(context) }
+
      val extra = LocalExtraColors.current
      val scheme = MaterialTheme.colorScheme
-    Scaffold(
+
+     Scaffold(
         containerColor = scheme.background,
         bottomBar = {
             BottomNavigationBar(
@@ -75,8 +91,8 @@ fun InicioScreen(
                 onItemSelected = { route ->
                     when(route){
                         "inicio" -> onNavChange(0)
-                        "conexion" -> onNavChange(1)
-                        "texto" -> onNavChange(2)
+                        "companera" -> onNavChange(1)
+                        "diario" -> onNavChange(2)
                         "ajustes" -> onNavChange(3)
                     }
                 }
@@ -84,7 +100,7 @@ fun InicioScreen(
         }
     ) { padding ->
 
-        val scroll = rememberScrollState()
+         val scroll = rememberScrollState()
         Column(
             Modifier
                 .fillMaxSize()
@@ -525,3 +541,4 @@ fun GreetingBubble(nombre: String, modifier: Modifier = Modifier) {
         }
     }
 }
+

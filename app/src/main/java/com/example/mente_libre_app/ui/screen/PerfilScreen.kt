@@ -58,8 +58,10 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.mente_libre_app.R
 import com.example.mente_libre_app.data.remote.dto.userprofile.UpdateUserProfileRequestDto
 import com.example.mente_libre_app.ui.components.BackArrowCustom
+import com.example.mente_libre_app.ui.components.RewardPopup
 import com.example.mente_libre_app.ui.theme.LocalExtraColors
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModel
+import com.example.mente_libre_app.ui.viewmodel.PetViewModelFactory
 import com.example.mente_libre_app.ui.viewmodel.UsuarioViewModel
 
 @Composable
@@ -138,7 +140,7 @@ fun PerfilScreen(
             .verticalScroll(rememberScrollState())
     ) {
 
-        // ---------- FLECHA + TÍTULO ----------
+        // ---------- FLECHA
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -287,12 +289,10 @@ fun PerfilScreen(
 
                     usuarioViewModel.actualizarPerfil(dto) { ok ->
                         if (ok) {
-                            usuarioViewModel.cargarMiPerfil()  // RECARGA
+                            usuarioViewModel.cargarMiPerfil()
                             cambiosPendientes = false
                             editingField = null
-                            println("DIRECCIÓN A ENVIAR = ${usuarioViewModel.direccion.value}")
-
-                        }   // Después de guardar, volver a ocultar el botón
+                        }
                     }
                 },
                 colors = ButtonDefaults.buttonColors(extra.buttonAlt),
@@ -307,30 +307,29 @@ fun PerfilScreen(
                 )
             }
         }
-    }
-    // --- BOTÓN ELIMINAR CUENTA ---
-    Spacer(Modifier.height(20.dp))
+        // --- BOTÓN ELIMINAR CUENTA ---
+        Spacer(Modifier.height(20.dp))
 
-    Button(
-        onClick = {
-            navController.navigate("eliminar_cuenta")
-        },
-        colors = ButtonDefaults.buttonColors(
-            containerColor = extra.title,   // tu color principal oscuro (morado/magenta según tema)
-            contentColor = Color.White
-        ),
-        shape = RoundedCornerShape(20.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(55.dp)
-    ) {
-        Text(
-            text = "Eliminar Cuenta",
-            fontFamily = serifRegular,
-            fontSize = 20.sp
-        )
+        Button(
+            onClick = {
+                navController.navigate("eliminar_cuenta")
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = extra.title,   // tu color principal oscuro (morado/magenta según tema)
+                contentColor = Color.White
+            ),
+            shape = RoundedCornerShape(20.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(55.dp)
+        ) {
+            Text(
+                text = "Eliminar Cuenta",
+                fontFamily = serifRegular,
+                fontSize = 20.sp
+            )
+        }
     }
-
 }
 
 @Composable

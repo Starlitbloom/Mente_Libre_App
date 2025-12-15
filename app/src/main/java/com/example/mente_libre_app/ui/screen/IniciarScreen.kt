@@ -77,6 +77,7 @@ import kotlinx.coroutines.delay
 fun IniciarScreenVm(
     authViewModel: AuthViewModel,
     onLoginSuccess: () -> Unit,
+    onAdminLogin: () -> Unit,
     onRegisterClick: () -> Unit
 ) {
     val state by authViewModel.login.collectAsStateWithLifecycle()
@@ -107,7 +108,14 @@ fun IniciarScreenVm(
         SuccessDialog2(
             onDismiss = {
                 showSuccessDialog = false
-                onLoginSuccess()
+                val rol = authViewModel.userRole.value ?: ""
+
+
+                if (rol.uppercase().contains("ADMIN")) {
+                    onAdminLogin()
+                } else {
+                    onLoginSuccess()
+                }
             }
         )
     }
@@ -276,7 +284,7 @@ fun IniciarScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "¿Ya tienes una cuenta?",
+                    text = "¿No tienes una cuenta?",
                     color = Color(0xFF842C46),
                     fontSize = 16.sp,
                     fontFamily = serifRegular
