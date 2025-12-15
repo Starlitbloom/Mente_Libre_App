@@ -1,15 +1,17 @@
-package com.example.mente_libre_app.viewmodel
+package com.example.mente_libre_app.ui.viewmodel
 
-import android.content.Context
+import com.example.mente_libre_app.data.remote.dto.auth.LoginResponseDto
+import com.example.mente_libre_app.data.remote.dto.auth.UserResponseDto
 import com.example.mente_libre_app.data.repository.UserRepository
 import com.example.mente_libre_app.ui.viewmodel.AuthViewModel
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.*
-import org.junit.After
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -17,105 +19,286 @@ import org.junit.Test
 class AuthViewModelTest {
 
     private lateinit var viewModel: AuthViewModel
-    private lateinit var repository: UserRepository
-    private lateinit var context: Context
-
-    private val dispatcher = StandardTestDispatcher()
+    private val repo: UserRepository = mockk(relaxed = true)
 
     @Before
     fun setup() {
-        Dispatchers.setMain(dispatcher)
-
-        repository = mockk()
-        context = mockk()
-
-        coEvery { repository.getCurrentUserId() } returns null
-
-        viewModel = AuthViewModel(repository, context)
+        viewModel = AuthViewModel(repo)
     }
 
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
+    // --------------------------------------------------------
+    // 1. VALIDACIÓN DE CAMPOS LOGIN
+    @Test
+    fun `login no permite enviar si campos estan vacios`() = runTest {
+        viewModel.onLoginEmailChange("")
+        viewModel.onLoginPassChange("")
+
+        val state = viewModel.login.value
+        assertFalse(state.canSubmit)
     }
 
     @Test
-    fun `cuando cambia el email, el state se actualiza`() = runTest {
-        viewModel.onLoginEmailChange("test@mail.com")
+    fun `login permite enviar cuando email y pass estan completos`() = runTest {
+        viewModel.onLoginEmailChange("correo@test.com")
+        viewModel.onLoginPassChange("123456")
 
-        val state = viewModel.login.first()
-        assertEquals("test@mail.com", state.email)
+        val state = viewModel.login.value
+        assertTrue(state.canSubmit)
+    }
+
+    // --------------------------------------------------------
+    // 2. LOGIN EXITOSO
+    @Test
+    fun `login exitoso actualiza success en true`() = runTest {
+        val fakeResponse = LoginResponseDto(
+            token = "ABC123",
+            userId = 10L,
+            username = "Maria",
+            email = "correo@test.com",
+            phone = "123456",
+            role = "USER"
+        )
+
+        coEvery { repo.login(any(), any()) } returns Result.success(fakeResponse)
+
+        viewModel.onLoginEmailChange("correo@test.com")
+        viewModel.onLoginPassChange("123456")
+        viewModel.submitLogin()
+
+        val state = viewModel.login.value
+        assertTrue(state.success)
+        assertNull(state.errorMsg)
+    }
+
+    // --------------------------------------------------------
+    // 3. LOGIN FALLIDO
+    // --------------------------------------------------------
+    @Test
+    fun `login fallido muestra mensaje de error`() = runTest {
+        coEvery { repo.login(any(), any()) } returns Result.failure(Exception("Credenciales incorrectas"))
+
+        viewModel.onLoginEmailChange("correo@test.com")
+        viewModel.onLoginPassChange("mala")
+        viewModel.submitLogin()
+
+        val state = viewModel.login.value
+        assertEquals("Credenciales incorrectas", state.errorMsg)
+        assertFalse(state.success)
+    }
+
+    // --------------------------------------------------------
+    // 4. CAMBIO DE CONTRASEÑA (error en confirmar)
+    // --------------------------------------------------------
+    @Test
+    fun `changePassword falla si las contrasenas no coinciden`() = runTest {
+        var resultMessage = ""
+        var resultSuccess = true
+
+        viewModel.changePassword(
+            actual = "1234",
+            nueva = "abcd",
+            confirmar = "noCoincide"
+        ) {
+            resultSuccess = it.success
+            resultMessage = it.errorMsg ?: ""
+        }
+
+        assertFalse(resultSuccess)
+        assertEquals("Las contraseñas nuevas no coinciden", resultMessage)
+    }
+
+    // --------------------------------------------------------
+    // 5. CAMBIO DE CONTRASEÑA EXITOSO
+    // --------------------------------------------------------
+    @Test
+    fun `changePassword exitoso devuelve success true`() = runTest {
+        coEvery { repo.changePassword(any(), any()) } returns Result.success(Unit)
+
+        var success = false
+
+        viewModel.changePassword(
+            actual = "1234",
+            nueva = "abcd",
+            confirmar = "abcd"
+        ) {
+            success = it.success
+        }
+
+        assertTrue(success)
+    }
+
+    // --------------------------------------------------------
+// 6. VALIDACIÓN DE CAMPOS REGISTRO
+// --------------------------------------------------------
+    @Test
+    fun `registro no permite enviar si hay campos vacios`() = runTest {
+        viewModel.onNameChange("")
+        viewModel.onEmailChange("")
+        viewModel.onPhoneChange("")
+        viewModel.onPassChange("")
+        viewModel.onConfirmChange("")
+
+        val state = viewModel.register.value
+
+        assertFalse(state.canSubmit)
     }
 
     @Test
-    fun `cuando login es exitoso, success debe ser true`() = runTest {
-        coEvery { repository.login("mail@mail.com", "1234") } returns Result.success(
-            LoginResponseDto(
-                token = "abc123",
-                userId = 10L
-            )
+    fun `registro permite enviar cuando todos los campos tienen datos`() = runTest {
+        viewModel.onNameChange("Maria")
+        viewModel.onEmailChange("correo@test.com")
+        viewModel.onPhoneChange("123456789")
+        viewModel.onPassChange("1234")
+        viewModel.onConfirmChange("1234")
+
+        val state = viewModel.register.value
+
+        assertTrue(state.canSubmit)
+    }
+
+    // --------------------------------------------------------
+// 7. REGISTRO EXITOSO (incluye login automático)
+// --------------------------------------------------------
+    @Test
+    fun `registro exitoso actualiza success en true`() = runTest {
+
+        // Fake respuesta del register
+        val fakeUser = UserResponseDto(
+            id = 1L,
+            username = "Maria",
+            email = "correo@test.com",
+            phone = "12345678",
+            rol = "USER"
         )
 
 
-        viewModel.onLoginEmailChange("mail@mail.com")
-        viewModel.onLoginPassChange("1234")
+        // Fake respuesta del login automático
+        val fakeLogin = LoginResponseDto(
+            token = "TOKEN123",
+            userId = 1L,
+            username = "Maria",
+            email = "correo@test.com",
+            phone = "123456",
+            role = "USER"
+        )
 
-        viewModel.submitLogin()
-        advanceUntilIdle()
+        coEvery { repo.register(any()) } returns Result.success(fakeUser)
+        coEvery { repo.login(fakeUser.email, any()) } returns Result.success(fakeLogin)
 
-        val state = viewModel.login.first()
-
-        assertEquals(true, state.success)
-        assertEquals(10L, viewModel.currentUserId.value)
-    }
-
-    @Test
-    fun `cuando login falla, success = false y errorMsg contiene mensaje`() = runTest {
-        coEvery { repository.login(any(), any()) } returns Result.failure(Exception("Credenciales inválidas"))
-
-        viewModel.onLoginEmailChange("mail@mail.com")
-        viewModel.onLoginPassChange("1234")
-
-        viewModel.submitLogin()
-        advanceUntilIdle()
-
-        val state = viewModel.login.first()
-
-        assertEquals(false, state.success)
-        assertEquals("Credenciales inválidas", state.errorMsg)
-    }
-
-    @Test
-    fun `register exitoso actualiza success en true`() = runTest {
-        coEvery { repository.register(any()) } returns Result.success(Unit)
-
-        viewModel.onNameChange("Juan")
-        viewModel.onEmailChange("email@mail.com")
-        viewModel.onPhoneChange("12345")
-        viewModel.onPassChange("1234")
-        viewModel.onConfirmChange("1234")
+        // Llenamos campos
+        viewModel.onNameChange("Maria")
+        viewModel.onEmailChange("correo@test.com")
+        viewModel.onPhoneChange("123456")
+        viewModel.onPassChange("abcd")
+        viewModel.onConfirmChange("abcd")
 
         viewModel.submitRegister()
-        advanceUntilIdle()
 
-        val state = viewModel.register.first()
-        assertEquals(true, state.success)
+        val state = viewModel.register.value
+
+        assertTrue(state.success)
+        assertNull(state.errorMsg)
     }
 
+    // --------------------------------------------------------
+// 8. REGISTRO FALLIDO (API retorna error)
+// --------------------------------------------------------
     @Test
-    fun `register fallido retorna mensaje de error`() = runTest {
-        coEvery { repository.register(any()) } returns Result.failure(Exception("Error de servidor"))
+    fun `registro fallido muestra errorMsg`() = runTest {
+        coEvery { repo.register(any()) } returns Result.failure(Exception("Email ya registrado"))
 
-        viewModel.onNameChange("Juan")
-        viewModel.onEmailChange("email@mail.com")
-        viewModel.onPhoneChange("12345")
-        viewModel.onPassChange("1234")
-        viewModel.onConfirmChange("1234")
+        // Llenamos campos
+        viewModel.onNameChange("Maria")
+        viewModel.onEmailChange("correo@test.com")
+        viewModel.onPhoneChange("123456")
+        viewModel.onPassChange("abcd")
+        viewModel.onConfirmChange("abcd")
 
         viewModel.submitRegister()
-        advanceUntilIdle()
 
-        val state = viewModel.register.first()
-        assertEquals("Error de servidor", state.errorMsg)
+        val state = viewModel.register.value
+
+        assertEquals("Email ya registrado", state.errorMsg)
+        assertFalse(state.success)
     }
+
+    // --------------------------------------------------------
+// 9. ERROR EN LOGIN AUTOMÁTICO DESPUÉS DEL REGISTRO
+// --------------------------------------------------------
+    @Test
+    fun `registro exitoso pero login automatico falla`() = runTest {
+        val fakeUser = UserResponseDto(
+            id = 1L,
+            username = "Maria",
+            email = "correo@test.com",
+            phone = "12345678",
+            rol = "USER"
+        )
+
+
+        coEvery { repo.register(any()) } returns Result.success(fakeUser)
+        coEvery { repo.login(fakeUser.email, any()) } returns
+                Result.failure(Exception("Credenciales incorrectas"))
+
+        // Llenar campos
+        viewModel.onNameChange("Maria")
+        viewModel.onEmailChange("correo@test.com")
+        viewModel.onPhoneChange("123456")
+        viewModel.onPassChange("abcd")
+        viewModel.onConfirmChange("abcd")
+
+        viewModel.submitRegister()
+
+        val state = viewModel.register.value
+
+        assertEquals(
+            "Error al iniciar sesión automáticamente: Credenciales incorrectas",
+            state.errorMsg
+        )
+        assertFalse(state.success)
+    }
+
+    // --------------------------------------------------------
+// 10. CLEAR REGISTER RESULT
+// --------------------------------------------------------
+    @Test
+    fun `clearRegisterResult resetea success y error`() = runTest {
+        val fakeUser = UserResponseDto(
+            id = 1L,
+            username = "Maria",
+            email = "correo@test.com",
+            phone = "12345678",
+            rol = "USER"
+        )
+
+
+        val fakeLogin = LoginResponseDto(
+            token = "TOKEN123",
+            userId = 1L,
+            username = "Maria",
+            email = "correo@test.com",
+            phone = "123456",
+            role = "USER"
+        )
+
+        coEvery { repo.register(any()) } returns Result.success(fakeUser)
+        coEvery { repo.login(fakeUser.email, any()) } returns Result.success(fakeLogin)
+
+        // Simulamos registro exitoso
+        viewModel.onNameChange("Maria")
+        viewModel.onEmailChange("correo@test.com")
+        viewModel.onPhoneChange("123456")
+        viewModel.onPassChange("abcd")
+        viewModel.onConfirmChange("abcd")
+        viewModel.submitRegister()
+
+        // limpiar estado
+        viewModel.clearRegisterResult()
+
+        val state = viewModel.register.value
+
+        assertFalse(state.success)
+        assertNull(state.errorMsg)
+    }
+
 }

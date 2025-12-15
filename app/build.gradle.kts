@@ -39,6 +39,16 @@ android {
     buildFeatures {
         compose = true
     }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
+
+    sourceSets {
+        getByName("test") {
+            java.srcDir("src/test/java")
+        }
+    }
 }
 
 dependencies {
@@ -88,6 +98,7 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0") // <-- NUEVO
     //librerias de Test Locales
     testImplementation(libs.junit) //libreria junit
+    testImplementation("junit:junit:4.13.2")
     testImplementation("io.mockk:mockk:1.13.12") //Mock para kotlin
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("org.robolectric:robolectric:4.13") //simular pruebas en Android test locales
